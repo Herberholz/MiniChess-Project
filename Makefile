@@ -5,7 +5,7 @@ CFLAGS = -std=c++11 -g -Wall
 CC = g++
 
 Minichess: main.cpp board.cpp
-	$(CC) main.cpp board.cpp $(CFLAGS) -I/.
+	$(CC) main.cpp board.cpp player.cpp $(CFLAGS) -I/.
 
 clean:
 	rm a.out
