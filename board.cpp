@@ -19,13 +19,15 @@ Move::Move()
    t_col_coord = '\0';
    f_row_coord = -1;
    t_row_coord = -1;
+   promotion = -1;
+   piece_capture = -1;
 }
 
 //Constructor
 Board::Board()
 {
     onmove = -1;  //indicates that white is on move
-    move_num = 1; //holds how many moves have gone by
+    move_num = 0; //holds how many moves have gone by
 
     //XXX temporarily hard code board and then copy to actual board
     
@@ -104,9 +106,39 @@ int Board::read_board()
 
 
 //Task:
-int Board::move(Move loc)
+int Board::move(Move & loc)
 {
-    return 0;
+    //simple make move
+    //have to deal with promotions and points still
+    int piece = 0;
+    int queen = 0;
+    int win = 0;
+
+    if(onmove == 1)
+        queen = 113;
+    else if(onmove == -1)
+        queen = 81;
+    
+    piece = board[loc.from_row][loc.from_col];
+    board[loc.from_row][loc.from_col] = 46;
+    
+    if(board[loc.to_row][loc.to_col] != 46)
+    {
+        loc.piece_capture = board[loc.to_row][loc.to_col];
+        if(loc.piece_capture == 75 || loc.piece_capture == 107)
+            win = 1;
+    }
+
+    //if move location is at end and piece is pawn then promote to queen
+    if((loc.to_row == 0 || loc.to_row == 5) && (piece == 80 || piece == 112))
+    {
+        loc.promotion = piece;
+        board[loc.to_row][loc.to_col] = queen;
+    }
+    else
+        board[loc.to_row][loc.to_col] = piece;
+
+    return win;
 }
 
 
@@ -116,6 +148,28 @@ int Board::move(Move loc)
 
 //    return 0;
 //}
+
+//Task:
+int Board::undo_move(Move loc)
+{
+    int piece = 0;
+
+    piece = board[loc.to_row][loc.to_col];
+    board[loc.to_row][loc.to_col] = 46;
+    board[loc.from_row][loc.from_col] = piece;
+
+    //if capture happened then put piece back
+    if(loc.piece_capture > 0)
+    {
+        board[loc.to_row][loc.to_col] = loc.piece_capture;
+    }
+    //if there was a promotion then undo
+    if(loc.promotion > 0)
+    {
+        board[loc.from_row][loc.from_col] = loc.promotion;
+    }
+    return 0;
+}
 
 
 //Task:
@@ -392,10 +446,65 @@ int Board::movegen(Move list[])
         }
     }
 
-    fprintf(stdout, "%d\n", index);   
-    display_moves(list,index);
-    move(list[0]);
+//    fprintf(stdout, "%d\n", index);   
+//    display_moves(list,index);
+    
+    //for(int i = 0; i < index; ++i)
+    //{
+//        win = move(list[i]);
+//        display();
+//        undo_move(list[i]);
+//        display();
+    //}
+
+    return index;
+}
+
+//Task:
+int Board::ab_prune()
+{
 
     return 0;
 }
 
+//Task:
+int Board::random_game(int player)
+{
+    srand(time(NULL));
+    //move function will return if king is taken
+    Move list[102];
+    //    Move rand[102];
+    onmove = player;
+    int moves = movegen(list);
+
+    //if no legal move available then you lose
+    if(!moves)
+        return -1;
+    if(player == -1)
+    {
+        if(move_num == 40)
+            return 0;
+        ++move_num;
+    }
+
+    int max_val = -1;
+    int val = -2;
+    int rando = rand() % moves;
+    
+//    for(int i = 0; i < moves; ++i)
+//    {
+        int result = move(list[rando]);
+//        if(move_num < 40)
+        display();
+        //king caught
+        if(result == 1)
+            return 1;
+        else
+            val = -random_game(- player);
+        
+        undo_move(list[rando]);
+        if(val > max_val)
+            max_val = val;
+//    }
+    return max_val;
+}

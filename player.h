@@ -12,6 +12,7 @@ class Player
         int random_game(Board & game);
         int player_vs_ai(Board & game);
         int player_vs_player(Board & game);
+        int server(Move list[]);
 
     private:
 

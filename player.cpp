@@ -15,16 +15,20 @@ Player::Player()
 
 int Player::random_game(Board & game)
 {
-    Move list[102];
+    //create a function in player to randomly sort the returned move list
+    
+    int result = game.random_game(-1); //white goes first
+    fprintf(stdout, "%d\n", result);
+    //Move list[102];
     //game.display();
 
-    game.read_board();
-    game.display();
+    //game.read_board();
+    //game.display();
 
-    game.movegen(list);
+    //game.movegen(list);
 
+    //server(list);
 
-    //game.move(list[i]);
     return 0;
 }
 
@@ -35,6 +39,12 @@ int Player::player_vs_ai(Board & game)
 }
 
 int Player::player_vs_player(Board & game)
+{
+
+    return 0;
+}
+
+int Player::server(Move list[])
 {
 
     return 0;
