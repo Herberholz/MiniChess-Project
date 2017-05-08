@@ -81,7 +81,6 @@ void Board::display_moves(Move list[], int index)
 int Board::read_board()
 {
     char color;
-    //int move_number = 0;
 
     //Take heed when reading into move_num
     //if my move_num is different from opponents at start will it be off??
@@ -143,11 +142,85 @@ int Board::move(Move & loc)
 
 
 //Task:
-//int Board::move(char coord[])
-//{
+int Board::move(char coord[])
+{
+    int piece   = 0;
+    int win     = 0;
+    int queen   = 0;
+    int capture = 0;
+    int fr_col  = 0;
+    int to_col  = 0;
+    int fr_row  = -1;
+    int to_row  = -1;
 
-//    return 0;
-//}
+    fr_col = coord[0] - 97; //a is 97, subtract that to get the col number
+    to_col = coord[3] - 97;
+    
+    if(coord[1] == '6' || coord[4] == '6')
+    {
+        if(coord[1] == '6')
+            fr_row = 0;
+        if(coord[4] == '6') 
+            to_row = 0;
+    }
+    if(coord[1] == '5' || coord[4] == '5')
+    {
+        if(coord[1] == '5')
+            fr_row = 1;
+        if(coord[4] == '5') 
+            to_row = 1;
+    }
+    if(coord[1] == '4' || coord[4] == '4')
+    {
+        if(coord[1] == '4')
+            fr_row = 2;
+        if(coord[4] == '4') 
+            to_row = 2;
+    }
+    if(coord[1] == '3' || coord[4] == '3')
+    {
+        if(coord[1] == '3')
+            fr_row = 3;
+        if(coord[4] == '3') 
+            to_row = 3;
+    }
+    if(coord[1] == '2' || coord[4] == '2')
+    {
+        if(coord[1] == '2')
+            fr_row = 4;
+        if(coord[4] == '2') 
+            to_row = 4;
+    }
+    if(coord[1] == '1' || coord[4] == '1')
+    {
+        if(coord[1] == '1')
+            fr_row = 5;
+        if(coord[4] == '1') 
+            to_row = 5;
+    }
+    
+    if(onmove == 1)
+        queen = 113;
+    else if(onmove == -1)
+        queen = 81;
+
+    piece = board[fr_row][fr_col];
+    board[fr_row][fr_col] = 46;
+    
+    if(board[to_row][to_col] != 46)
+    {
+        capture = board[to_row][to_col];
+        if(capture == 75 || capture == 107)
+            win = 1;
+    }
+    
+    if((to_row == 0 || to_row == 5) && (piece == 80 || piece == 112))
+        board[to_row][to_col] = queen;
+    else
+        board[to_row][to_col] = piece;
+
+    return win;
+}
 
 //Task:
 int Board::undo_move(Move loc)
@@ -229,6 +302,7 @@ int Board::fill_move(int x0,int y0,int x, int y,Move list[],int & index)
             t_row_change = 1;
     }
 
+    //XXX may not need coords?
     list[index].f_col_coord = x0 + 97;
     list[index].t_col_coord = x + 97;
     list[index].f_row_coord = f_row_change; 
@@ -465,46 +539,4 @@ int Board::ab_prune()
 {
 
     return 0;
-}
-
-//Task:
-int Board::random_game(int player)
-{
-    srand(time(NULL));
-    //move function will return if king is taken
-    Move list[102];
-    //    Move rand[102];
-    onmove = player;
-    int moves = movegen(list);
-
-    //if no legal move available then you lose
-    if(!moves)
-        return -1;
-    if(player == -1)
-    {
-        if(move_num == 40)
-            return 0;
-        ++move_num;
-    }
-
-    int max_val = -1;
-    int val = -2;
-    int rando = rand() % moves;
-    
-//    for(int i = 0; i < moves; ++i)
-//    {
-        int result = move(list[rando]);
-//        if(move_num < 40)
-        display();
-        //king caught
-        if(result == 1)
-            return 1;
-        else
-            val = -random_game(- player);
-        
-        undo_move(list[rando]);
-        if(val > max_val)
-            max_val = val;
-//    }
-    return max_val;
 }

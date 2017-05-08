@@ -9,15 +9,17 @@
 //Possibly might have to initialize Board game in Player functions or just pass 
 //it into each function called
 
-#include "player.h"
+#include "board.h"
 
 int main(int argc, char ** argv)
 {
     Player adversary;
-    Board game;
+    //Board game;
     
     //Temporarilly set to random setting, must be set to zero for final implementation
-    int choice = 1;
+    int choice = 2;
+    int result = 0;
+    srand(time(NULL));
 
     //flag checking
     if(argc == 2)
@@ -38,19 +40,19 @@ int main(int argc, char ** argv)
             break;
         //random
         case 1:
-            adversary.random_game(game);
+            result = adversary.random_game(-1); //pass in -1 since white goes first
+            fprintf(stdout, "%d\n", result);
             break;
         //1 player
         case 2:
+            adversary.display();
+            result = adversary.player_vs_ai(-1);
+            fprintf(stdout, "%d\n", result);
             break;
         //error state
         default:
             fprintf(stderr, "Flag Error");
     }
-
-    //fprintf(stdout, "%s\n", argv[1]);
-    //game.read_board();
-    //game.display();
 
     return 0;
 }

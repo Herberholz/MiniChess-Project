@@ -41,7 +41,7 @@ class Board
         void display_moves(Move[],int);   //prints out all moves available for state
         int read_board();       //read in board from stream
         int move(Move & loc);     //if piece is legal then makes move and provides new state
-        //int move(char coord[]); //decodes argument, checkes if move legal, then calls move
+        int move(char coord[]); //decodes argument, checkes if move legal, then calls move
         int undo_move(Move loc);  //undos a move that was made
         int fill_move(int,int,int,int,Move[],int&);           //fills move list
         int scan(int,int,int,int,int,int,Move[],int&);             //scans to find pieces
@@ -49,9 +49,24 @@ class Board
         int move_list(int,int,Move[],int&);        //scans to find moves for each piece
         int movegen(Move list[]);          //generates all legal moves that can be made from given state
         int ab_prune();
-        int random_game(int);
-    private:
+    
+    protected:
         char board[ROW_DIM][COL_DIM];
         int onmove;
         int move_num;
+};
+
+
+class Player: public Board
+{
+    public:
+        Player();
+        //~Player();
+        int random_game(int);
+        int player_vs_ai(int);
+        int player_vs_player();
+        int server(Move list[]);
+
+    protected:
+
 };
