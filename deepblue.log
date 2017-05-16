@@ -1,0 +1,59 @@
+100 imcs 2.5
+201 hello DeepBlue
+103 12398 game waiting for offer acceptance
+waiting for opponent
+105 W 5:00 5:00 game starts
+opponent found
+
+1 W
+kqbnr
+ppppp
+.....
+.....
+PPPPP
+RNBQK
+
+? 05:00.000 05:00.000
+received move a5-a4
+
+
+
+
+2 W
+kqbnr
+.pppp
+p....
+N....
+PPPPP
+R.BQK
+
+? 05:00.000 03:55.813
+received move e5-e4
+
+
+
+
+3 W
+kqbnr
+.ppp.
+p...p
+N...P
+PPPP.
+R.BQK
+
+? 04:59.948 02:50.596
+received move b5-b4
+
+
+
+
+4 W
+kqbnr
+..pp.
+pp..p
+N...P
+PPPPQ
+R.B.K
+
+? 04:59.894 02:00.477
+= W wins

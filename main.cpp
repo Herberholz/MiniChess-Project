@@ -17,7 +17,7 @@ int main(int argc, char ** argv)
     //Board game;
     
     //Temporarilly set to random setting, must be set to zero for final implementation
-    int choice = 2;
+    int choice = 0;
     int result = 0;
     srand(time(NULL));
 
@@ -36,7 +36,11 @@ int main(int argc, char ** argv)
     {
         //player vs player
         case 0:
-            fprintf(stdout, "player vs player not implemented\n");
+            //make sure to alternate onmove according to what side i play on server
+//            adversary.imcs_play(argc, argv);
+            adversary.test(-1);
+//            result = adversary.player_vs_player(-1);
+//            fprintf(stdout, "%d\n", result);
             break;
         //random
         case 1:

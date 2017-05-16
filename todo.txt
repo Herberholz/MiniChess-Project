@@ -1,0 +1,11 @@
+1) Build minichess state evaluator
+    make sure to incorporate the use of points for pieces on board
+    have function order moves based off of what is worst for opponent
+    calculate value of each state after each available move and choose worst for opponent
+2) Add alpha beta pruning to reduce tree search
+3) Complete code to connect to server
+4) Complete move ordering function (connected to one)
+
+
+Notes: figure out how to evalute which move is best by searching recursively and while
+        keeping best move and making it after recursive call.

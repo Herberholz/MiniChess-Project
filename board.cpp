@@ -7,6 +7,8 @@
 //would be useful to have a piece list that contains locations of each piece on board
 //each opponent would have their own piece list
 
+
+
 //Constructor for struct
 Move::Move()
 {
@@ -14,21 +16,24 @@ Move::Move()
    from_col = -1;
    to_row = -1;
    to_col = -1;
-   //move_coord[0] = '\0';
    f_col_coord = '\0';
    t_col_coord = '\0';
    f_row_coord = -1;
    t_row_coord = -1;
    promotion = -1;
    piece_capture = -1;
+   score = -1;
 }
+
+
 
 //Constructor
 Board::Board()
 {
     onmove = -1;  //indicates that white is on move
     move_num = 0; //holds how many moves have gone by
-
+    move_index = 0; //set to zero to indicate first move is best unless specified
+    
     //XXX temporarily hard code board and then copy to actual board
     
     char temp[ROW_DIM][COL_DIM] = {
@@ -44,6 +49,8 @@ Board::Board()
         for(int j = 0; j < COL_DIM; ++j)
             board[i][j] = temp[i][j];
 }
+
+
 
 //Task:
 void Board::display()
@@ -67,15 +74,21 @@ void Board::display()
     printf("\n");
 }
 
+
+
 //Task:
 void Board::display_moves(Move list[], int index)
 {
-   for(int i = 0; i < index; ++i)
-   {
-       fprintf(stdout, "%c%d-%c%d\n", list[i].f_col_coord,list[i].f_row_coord,
-                                      list[i].t_col_coord,list[i].t_row_coord);
-   }
+    for(int i = 0; i < index; ++i)
+    {
+        fprintf(stdout, "%c%d-%c%d\n", list[i].f_col_coord,list[i].f_row_coord,
+                                       list[i].t_col_coord,list[i].t_row_coord);
+        fprintf(stdout, "%d\n", list[i].score);    
+    }
+    fprintf(stdout, "\n");
 }
+
+
 
 //Task:
 int Board::read_board()
@@ -104,6 +117,7 @@ int Board::read_board()
 }
 
 
+
 //Task:
 int Board::move(Move & loc)
 {
@@ -120,7 +134,7 @@ int Board::move(Move & loc)
     
     piece = board[loc.from_row][loc.from_col];
     board[loc.from_row][loc.from_col] = 46;
-    
+
     if(board[loc.to_row][loc.to_col] != 46)
     {
         loc.piece_capture = board[loc.to_row][loc.to_col];
@@ -141,6 +155,7 @@ int Board::move(Move & loc)
 }
 
 
+
 //Task:
 int Board::move(char coord[])
 {
@@ -155,50 +170,14 @@ int Board::move(char coord[])
 
     fr_col = coord[0] - 97; //a is 97, subtract that to get the col number
     to_col = coord[3] - 97;
-    
-    if(coord[1] == '6' || coord[4] == '6')
-    {
-        if(coord[1] == '6')
-            fr_row = 0;
-        if(coord[4] == '6') 
-            to_row = 0;
-    }
-    if(coord[1] == '5' || coord[4] == '5')
-    {
-        if(coord[1] == '5')
-            fr_row = 1;
-        if(coord[4] == '5') 
-            to_row = 1;
-    }
-    if(coord[1] == '4' || coord[4] == '4')
-    {
-        if(coord[1] == '4')
-            fr_row = 2;
-        if(coord[4] == '4') 
-            to_row = 2;
-    }
-    if(coord[1] == '3' || coord[4] == '3')
-    {
-        if(coord[1] == '3')
-            fr_row = 3;
-        if(coord[4] == '3') 
-            to_row = 3;
-    }
-    if(coord[1] == '2' || coord[4] == '2')
-    {
-        if(coord[1] == '2')
-            fr_row = 4;
-        if(coord[4] == '2') 
-            to_row = 4;
-    }
-    if(coord[1] == '1' || coord[4] == '1')
-    {
-        if(coord[1] == '1')
-            fr_row = 5;
-        if(coord[4] == '1') 
-            to_row = 5;
-    }
-    
+    fr_row = coord[1] - 54;
+    to_row = coord[4] - 54;
+
+    if(fr_row != 0)
+        fr_row = - fr_row;
+    if(to_row != 0)
+        to_row = - to_row;
+
     if(onmove == 1)
         queen = 113;
     else if(onmove == -1)
@@ -221,6 +200,8 @@ int Board::move(char coord[])
 
     return win;
 }
+
+
 
 //Task:
 int Board::undo_move(Move loc)
@@ -246,73 +227,60 @@ int Board::undo_move(Move loc)
 
 
 //Task:
-int Board::fill_move(int x0,int y0,int x, int y,Move list[],int & index)
-{   
-    int f_row_change = 0;
-    int t_row_change = 0;
+int Board::move_order(Move source[], Move dest[], int total)
+{
+    int max = -100000;
+    int grabbed[total]; //holds one if element transfered
+    int hold = -1;
+
+    //initialize grabbed
+    for(int k = 0; k < total; ++k)
+        grabbed[k] = 0;
+
+    //fill move struct with values of best move until end and then swap 
+    for(int i = 0; i < total; ++i)
+    {
+        max = -100000;
+        hold = -1;
+
+        for(int j = 0; j < total; ++j)
+        {
+            if(grabbed[j] == 0)
+            {
+                if(source[j].score > max)
+                {
+                    max = source[j].score;
+                    hold = j; //holds location of max move score
+                }
+                else if(source[j].score == max)
+                {
+                    //take random if score is the same
+                    int rando = rand() % 2;
+                    if(rando)
+                        hold = j;
+                }
+            }
+        }
+        grabbed[hold] = 1;
+        dest[i].from_row = source[hold].from_row;
+        dest[i].from_col = source[hold].from_col;
+        dest[i].to_row = source[hold].to_row;
+        dest[i].to_col = source[hold].to_col;
         
-    //insert move 
-    list[index].from_row = y0;
-    list[index].from_col = x0;
-    list[index].to_row = y;
-    list[index].to_col = x;
+        dest[i].f_col_coord = source[hold].f_col_coord;
+        dest[i].t_col_coord = source[hold].t_col_coord;
+        dest[i].f_row_coord = source[hold].f_row_coord; 
+        dest[i].t_row_coord = source[hold].t_row_coord;
+
+        dest[i].promotion = source[hold].promotion;
+        dest[i].piece_capture = source[hold].piece_capture;
+        dest[i].score = source[hold].score;
+    }
+    //display_moves(dest, total);
     
-    //let the move funtion handle creating board coordinates
-    // XXX Fix ugly code
-    if(y0 == 0 || y == 0)
-    {
-        if(y0 == 0)
-            f_row_change = 6;
-        if(y == 0) 
-            t_row_change = 6;
-    }
-    if(y0 == 1 || y == 1)
-    {
-        if(y0 == 1)
-            f_row_change = 5;
-        if(y == 1)
-            t_row_change = 5;
-    }
-    if(y0 == 2 || y == 2)
-    {
-        if(y0 == 2)
-            f_row_change = 4;
-        if(y == 2)
-            t_row_change = 4;
-    }
-    if(y0 == 3 || y == 3)
-    {
-        if(y0 == 3)
-            f_row_change = 3;
-        if(y == 3)
-            t_row_change = 3;
-    }
-    if(y0 == 4 || y == 4)
-    {
-        if(y0 == 4)
-            f_row_change = 2;
-        if(y == 4)
-            t_row_change = 2;
-    }
-    if(y0 == 5 || y == 5)
-    {
-        if(y0 == 5)
-            f_row_change = 1;
-        if(y == 5)
-            t_row_change = 1;
-    }
-
-    //XXX may not need coords?
-    list[index].f_col_coord = x0 + 97;
-    list[index].t_col_coord = x + 97;
-    list[index].f_row_coord = f_row_change; 
-    list[index].t_row_coord = t_row_change;
-
-    ++index; //increment to next index
-
-
     return 0;
 }
+
 
 //Task:
 int Board::scan(int x0,int y0,int dx,int dy,int stop_short,int capture,Move list[],int & index)
@@ -354,12 +322,27 @@ int Board::scan(int x0,int y0,int dx,int dy,int stop_short,int capture,Move list
         else if(capture == 2)
             break;
 
-        fill_move(x0,y0,x,y,list,index);
-    
+        //fill_move(x0,y0,x,y,list,index);
+        //insert move 
+        list[index].from_row = y0;
+        list[index].from_col = x0;
+        list[index].to_row = y;
+        list[index].to_col = x;
+        
+        list[index].f_col_coord = x0 + 97;
+        list[index].t_col_coord = x + 97;
+        list[index].f_row_coord = 6 - y0; 
+        list[index].t_row_coord = 6 - y;
+
+        state_eval(list[index]); //evaluate state
+        
+        ++index; //increment to next index
+       
     }while(!stop_short);
 
     return 0;
 }
+
 
 
 //Task:
@@ -378,6 +361,7 @@ int Board::symm_scan(int x,int y,int dx,int dy,int stop_short,int capture,Move l
     }
     return 0;
 }
+
 
 
 //Task:
@@ -476,6 +460,7 @@ int Board::move_list(int x, int y, Move list[], int & index)
 }
 
 
+
 //Task:
 //Output: Returns a list of strings/arrays (a1-a2, b1-b2)
 int Board::movegen(Move list[])
@@ -520,11 +505,10 @@ int Board::movegen(Move list[])
         }
     }
 
-//    fprintf(stdout, "%d\n", index);   
 //    display_moves(list,index);
     
-    //for(int i = 0; i < index; ++i)
-    //{
+//    for(int i = 0; i < index; ++i)
+//    {
 //        win = move(list[i]);
 //        display();
 //        undo_move(list[i]);
@@ -534,9 +518,194 @@ int Board::movegen(Move list[])
     return index;
 }
 
-//Task:
-int Board::ab_prune()
-{
 
+
+//count up scores for both players and take difference
+//must change program to pick random move worst for opponent
+//program must calculate value of state opponent gets for each possible move, choose worst
+//value of state is positive when side on move has advantage
+//Task:
+int Board::state_eval(Move &loc)
+{
+    //take in single move struct
+    //make move and eval state then undo move made and return score/add score to struct
+    //-make sure to increase points for pawn that has free pass to promotion
+    //XXX Make sure to keep track of overall score for each player, not each move individually
+    int result = 0;
+    int piece = 0;
+    int player = 0;
+    int score1 = 0; //holds score for player 1
+    int score2 = 0; //holds score for player 2
+    int sum = 0;    //holds difference between scores
+    
+    result = move(loc); //returns if king is taken
+
+    if(result == 1)
+    {
+        undo_move(loc);
+        loc.score = 10000;
+        return 1;
+    }
+ 
+    for(int i = 0; i < ROW_DIM; ++i)
+    {
+        for(int j = 0; j < COL_DIM-1; ++j)
+        {
+            piece = board[i][j];
+            
+            if(piece > 97 && piece < 115)
+                player = 1; //Black
+            else if(piece > 65 && piece < 83)
+                player = 2; //White
+            
+            if(piece != 46)
+            {
+                if(player == 1)
+                {
+                    if(piece == 107)
+                        score1 = score1; //dont change for king
+                    else if(piece == 98)//bishop
+                        score1 += 300;
+                    else if(piece == 110)//knight
+                        score1 += 300;
+                    else if(piece == 112)//pawn
+                        score1 += 100;
+                    else if(piece == 113)//queen
+                        score1 += 900;
+                    else if(piece == 114)//rook
+                        score1 += 500;
+                    else
+                    {
+                        fprintf(stderr, "unknown piece in eval\n");
+                        exit(0);
+                    }
+                }
+                else if(player == 2)
+                {
+                    if(piece == 75)
+                        score2 = score2; //dont change for king
+                    else if(piece == 66)//bishop
+                        score2 += 300;
+                    else if(piece == 78)//knight
+                        score2 += 300;
+                    else if(piece == 80)//pawn
+                        score2 += 100;
+                    else if(piece == 81)//queen
+                        score2 += 900;
+                    else if(piece == 82)//rook
+                        score2 += 500;
+                    else
+                    {
+                        fprintf(stderr, "unknown piece in eval\n");
+                        exit(0);
+                    }
+                }
+                else
+                {
+                    fprintf(stderr, "Error in state_eval\n");
+                    exit(0);
+                }
+            }
+        }
+    }
+    if(onmove == 1)
+        sum = score1 - score2;
+    else if(onmove == -1)
+        sum = score2 - score1;
+    loc.score = sum;
+    undo_move(loc);
+
+    return 0;
+}
+
+
+//Task:
+int Board::negamax(int player, int depth, int score)
+{
+    //move_index = 0;
+    onmove = player; //be cautious when returning that i am on right player move
+    if(depth <= 0 || score >= 10000)
+    {
+        return score;
+    }
+    
+    
+    Move list[102];
+    int moves = movegen(list);
+    
+    Move ordered[moves];
+    move_order(list, ordered, moves);
+  
+    move(ordered[0]); //make move on board
+    int max_val = - negamax(- player, depth - 1, ordered[0].score);
+    undo_move(ordered[0]);//undo move made
+    
+//    fprintf(stdout, "Player: %d\n", player);
+//    fprintf(stdout, "Max_val: %d\n", max_val);
+    
+    for(int i = 1; i < moves; ++i) //starts at element 1 due to move 0 being taken
+    {
+        move(ordered[i]);
+        int val = - negamax(- player, depth - 1, ordered[i].score);
+        undo_move(ordered[i]);
+
+    //    fprintf(stdout, "Val: %d\n\n", val);
+  
+        if(depth == DEPTH)
+        {
+            fprintf(stdout, "Player: %d\n", player);
+            fprintf(stdout, "Max_val: %d\n", max_val);
+            fprintf(stdout, "%d\n\n", val);
+        display_moves(ordered, moves);
+
+        }
+        if(val > max_val)
+        {
+//            fprintf(stdout, "%d\n", val);
+            max_val = val;
+            if(depth == DEPTH) //keep track of which move leads to best path
+            {               
+ //               fprintf(stdout, "Max_val: %d\n", max_val);
+ //               fprintf(stdout, "Val: %d\n", val);
+                move_index = i;
+            }
+        }
+
+    }
+
+    if(depth == DEPTH)
+    {
+        //if max val is take king then do it
+        if(max_val == 10000)
+        {
+            fprintf(stdout, "takeKing\n");
+            move(ordered[0]);
+            display();
+            sprintf(string, "%c%d-%c%d", ordered[0].f_col_coord,
+                                         ordered[0].f_row_coord,
+                                         ordered[0].t_col_coord,
+                                         ordered[0].t_row_coord);
+        }
+        else
+        {
+            move(ordered[move_index]);
+            display();
+            sprintf(string, "%c%d-%c%d", ordered[move_index].f_col_coord,
+                                         ordered[move_index].f_row_coord,
+                                         ordered[move_index].t_col_coord,
+                                         ordered[move_index].t_row_coord);
+
+        }
+//        fprintf(stdout, "%d\n", move_index);
+//        display_moves(ordered, moves);
+    }
+    return max_val;
+}
+
+
+//Task:
+int Board::ab_prune(int player)
+{
+    
     return 0;
 }
