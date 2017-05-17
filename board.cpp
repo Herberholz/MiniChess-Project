@@ -33,7 +33,8 @@ Board::Board()
     onmove = -1;  //indicates that white is on move
     move_num = 0; //holds how many moves have gone by
     move_index = 0; //set to zero to indicate first move is best unless specified
-    
+    string[0] = '\0';
+
     //XXX temporarily hard code board and then copy to actual board
     
     char temp[ROW_DIM][COL_DIM] = {
@@ -131,7 +132,20 @@ int Board::move(Move & loc)
         queen = 113;
     else if(onmove == -1)
         queen = 81;
-    
+ 
+    if(loc.to_row < 0 || loc.to_row > 5)
+    {
+        //display();
+        fprintf(stdout, "%d\n", loc.to_row);
+        fprintf(stderr, "Invalid row move\n");
+        exit(0);
+    }
+    if(loc.to_col < 0 || loc.to_col > 4)
+    {
+        fprintf(stderr, "Invalid col move\n");
+        exit(0);
+    }
+
     piece = board[loc.from_row][loc.from_col];
     board[loc.from_row][loc.from_col] = 46;
 
@@ -208,6 +222,17 @@ int Board::undo_move(Move loc)
 {
     int piece = 0;
 
+    if(loc.to_row < 0 || loc.to_row > 5)
+    {
+        fprintf(stderr, "Invalid row move\n");
+        exit(0);
+    }
+    if(loc.to_col < 0 || loc.to_col > 4)
+    {
+        fprintf(stderr, "Invalid col move\n");
+        exit(0);
+    }
+
     piece = board[loc.to_row][loc.to_col];
     board[loc.to_row][loc.to_col] = 46;
     board[loc.from_row][loc.from_col] = piece;
@@ -275,7 +300,7 @@ int Board::move_order(Move source[], Move dest[], int total)
         dest[i].promotion = source[hold].promotion;
         dest[i].piece_capture = source[hold].piece_capture;
         dest[i].score = source[hold].score;
-    }
+}
     //display_moves(dest, total);
     
     return 0;
@@ -623,50 +648,69 @@ int Board::state_eval(Move &loc)
 int Board::negamax(int player, int depth, int score)
 {
     //move_index = 0;
-    onmove = player; //be cautious when returning that i am on right player move
     if(depth <= 0 || score >= 10000)
     {
-        return score;
+        return -score; //flip score since it is score from opponent
     }
-    
-    
+//    fprintf(stdout, "%d\n", onmove);
+    onmove = player; //be cautious when returning that i am on right player move
+//    fprintf(stdout, "%d\n\n", onmove);
+
     Move list[102];
     int moves = movegen(list);
-    
+   
+    //if no legal moves, then return loss
+    if(moves == 0)
+    {
+        onmove = - player;
+        return -10000;
+    }
     Move ordered[moves];
     move_order(list, ordered, moves);
-  
+    
+//    display_moves(ordered, moves);
+ 
     move(ordered[0]); //make move on board
+//    display();    
+//    if(depth == DEPTH-1)
+//        display();
     int max_val = - negamax(- player, depth - 1, ordered[0].score);
+
+    onmove = player;
+
     undo_move(ordered[0]);//undo move made
     
-//    fprintf(stdout, "Player: %d\n", player);
-//    fprintf(stdout, "Max_val: %d\n", max_val);
-    
+    //fprintf(stdout, "Player: %d\n", player);
+    //fprintf(stdout, "Max_val: %d\n", max_val);        
+    //display_moves(ordered, moves);
+
     for(int i = 1; i < moves; ++i) //starts at element 1 due to move 0 being taken
     {
+        onmove = player;
+
         move(ordered[i]);
+//        display();
+//        if(depth == DEPTH-1)
+//            display();
         int val = - negamax(- player, depth - 1, ordered[i].score);
+
+    //    fprintf(stdout, "%d\n", onmove);
+        onmove = player;
         undo_move(ordered[i]);
 
     //    fprintf(stdout, "Val: %d\n\n", val);
   
-        if(depth == DEPTH)
-        {
-            fprintf(stdout, "Player: %d\n", player);
-            fprintf(stdout, "Max_val: %d\n", max_val);
-            fprintf(stdout, "%d\n\n", val);
-        display_moves(ordered, moves);
-
-        }
+//        if(depth == DEPTH)
+//        {
+//            fprintf(stdout, "Player: %d\n", player);
+//            fprintf(stdout, "Max_val: %d\n", max_val);
+//            fprintf(stdout, "Val: %d\n\n", val);
+//        }
         if(val > max_val)
         {
-//            fprintf(stdout, "%d\n", val);
             max_val = val;
             if(depth == DEPTH) //keep track of which move leads to best path
             {               
- //               fprintf(stdout, "Max_val: %d\n", max_val);
- //               fprintf(stdout, "Val: %d\n", val);
                 move_index = i;
             }
         }
@@ -676,18 +720,20 @@ int Board::negamax(int player, int depth, int score)
     if(depth == DEPTH)
     {
         //if max val is take king then do it
-        if(max_val == 10000)
-        {
-            fprintf(stdout, "takeKing\n");
-            move(ordered[0]);
-            display();
-            sprintf(string, "%c%d-%c%d", ordered[0].f_col_coord,
-                                         ordered[0].f_row_coord,
-                                         ordered[0].t_col_coord,
-                                         ordered[0].t_row_coord);
-        }
-        else
-        {
+//        if(max_val == 10000)
+//        {
+//            fprintf(stdout, "takeKing\n");
+//            move(ordered[0]);
+//            display();
+//            sprintf(string, "%c%d-%c%d", ordered[0].f_col_coord,
+//                                         ordered[0].f_row_coord,
+//                                         ordered[0].t_col_coord,
+//                                         ordered[0].t_row_coord);
+//        }
+//        else
+//        {
+//            fprintf(stdout, "%d\n", onmove);
+            onmove = player;
             move(ordered[move_index]);
             display();
             sprintf(string, "%c%d-%c%d", ordered[move_index].f_col_coord,
@@ -695,10 +741,12 @@ int Board::negamax(int player, int depth, int score)
                                          ordered[move_index].t_col_coord,
                                          ordered[move_index].t_row_coord);
 
-        }
+//        }
 //        fprintf(stdout, "%d\n", move_index);
 //        display_moves(ordered, moves);
     }
+
+    //onmove = - player;
     return max_val;
 }
 

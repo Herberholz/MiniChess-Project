@@ -11,7 +11,7 @@
 
 const int ROW_DIM = 6;
 const int COL_DIM = 6;
-const int DEPTH = 2;
+const int DEPTH = 6;
 
 //Whenever white is onmove need to bump the move number
 
@@ -71,6 +71,7 @@ class Player: public Board
         int random_game(int);
         int player_vs_ai(int);
         int player_vs_player(int);
+        int rand_vs_nega(int);
         int test(int);
         int imcs_play(int, char**);
 

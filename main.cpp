@@ -28,7 +28,10 @@ int main(int argc, char ** argv)
             choice = 1;
         else if(strcmp(argv[1], "--1player") == 0)
             choice = 2;
-
+        else if(strcmp(argv[1], "--randvnega") == 0)
+            choice = 3;
+        else if (strcmp(argv[1], "--test") == 0)
+            choice = 4;
     }
 
     //default should be player vs player
@@ -39,11 +42,10 @@ int main(int argc, char ** argv)
             //make sure to alternate onmove according to what side i play on server
 //            adversary.imcs_play(argc, argv);
             adversary.test(-1);
-//            result = adversary.player_vs_player(-1);
-//            fprintf(stdout, "%d\n", result);
             break;
         //random
         case 1:
+            adversary.display();
             result = adversary.random_game(-1); //pass in -1 since white goes first
             fprintf(stdout, "%d\n", result);
             break;
@@ -51,6 +53,15 @@ int main(int argc, char ** argv)
         case 2:
             adversary.display();
             result = adversary.player_vs_ai(-1);
+            fprintf(stdout, "%d\n", result);
+            break;
+        case 3:
+//            adversary.display();
+            result = adversary.rand_vs_nega(-1);
+            fprintf(stdout, "%d\n", result);
+            break;
+        case 4:
+            result = adversary.test(-1);
             fprintf(stdout, "%d\n", result);
             break;
         //error state

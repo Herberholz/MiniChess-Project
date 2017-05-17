@@ -154,17 +154,9 @@ int Player::player_vs_player(int player)
     return max_val;
 }
 
-int Player::test(int player)
-{
-    onmove = player;
-    read_board();
-    display();
-    int val = negamax(onmove, DEPTH, 0);
-    fprintf(stdout, "%d\n", val);
-    fprintf(stdout, "Move_index: %d\n", move_index);
-    return 0;
 
-    /*
+int Player::rand_vs_nega(int player)
+{
     Move list[102];
     onmove = player;
     int result = 0;
@@ -207,13 +199,25 @@ int Player::test(int player)
     else if(result <= -10000)
         return -1;
     else
-        val = -test(- player);
+        val = -rand_vs_nega(- player);
     
     if(val > max_val)
         max_val = val;
     
     return max_val;
-    */
+}
+
+
+int Player::test(int player)
+{
+    onmove = player;
+    read_board();
+    display();
+    int val = negamax(player, DEPTH, 0);
+    fprintf(stdout, "%d\n", val);
+    fprintf(stdout, "Move_index: %d\n", move_index);
+
+    return 0;
 }
 
 
@@ -243,6 +247,17 @@ int Player::imcs_play(int argc, char ** argv)
                 case 'B':
                 case '?':
                     mecolor = argv[2][0];
+                    
+                    //set onmove to correct player
+                    if(mecolor == 'W')
+                        onmove = -1;
+                    else if(onmove == 'B')
+                        onmove = 1;
+                    else
+                    {
+                        fprintf(stderr, "onmove not set in server code");
+                        exit(0);
+                    }
                     break;
                 default:
                     fprintf(stderr, "Error with Offer command\n");
@@ -258,6 +273,17 @@ int Player::imcs_play(int argc, char ** argv)
             {
                 mecolor = ch;
                 megame = atoi(&argv[2][1]);
+                
+                //set onmove to correct player
+                if(mecolor == 'W')
+                    onmove = -1;
+                else if(onmove == 'B')
+                    onmove = 1;
+                else
+                {
+                    fprintf(stderr, "onmove not set in server code");
+                    exit(0);
+                }
             }
             else
             {
@@ -358,7 +384,7 @@ int Player::imcs_play(int argc, char ** argv)
                 //insert time management here
                 move_index = 0; //reset move index
                 negamax(onmove, DEPTH, 0);
-                //net.logmsg((char*)"made move %s\n\n",string);
+                net.logmsg((char*)"made move %s\n\n",string);
                 net.sendcmd(nf, string);
                 //if ponder then run negamax again
                 continue;

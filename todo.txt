@@ -4,8 +4,8 @@
     calculate value of each state after each available move and choose worst for opponent
 2) Add alpha beta pruning to reduce tree search
 3) Complete code to connect to server
-4) Complete move ordering function (connected to one)
-
+4) Randomize move ordering function when dealing with multiple same scores
+5) Randomize which move negamax picks if val equals max_val
 
 Notes: figure out how to evalute which move is best by searching recursively and while
         keeping best move and making it after recursive call.
