@@ -6,17 +6,11 @@
 //(player class) to play random game, have a game where i play against computer, 
 //and a game that connects to server for 2 player game
 
-//Possibly might have to initialize Board game in Player functions or just pass 
-//it into each function called
-
 #include "board.h"
 
 int main(int argc, char ** argv)
 {
     Player adversary;
-    //Board game;
-    
-    //Temporarilly set to random setting, must be set to zero for final implementation
     int choice = 0;
     int result = 0;
     srand(time(NULL));
@@ -26,12 +20,16 @@ int main(int argc, char ** argv)
     {
         if(strcmp(argv[1], "--random") == 0)
             choice = 1;
-        else if(strcmp(argv[1], "--1player") == 0)
+        else if(strcmp(argv[1], "--1vrand") == 0)
             choice = 2;
-        else if(strcmp(argv[1], "--randvnega") == 0)
+        else if(strcmp(argv[1], "--1vnega") == 0)
             choice = 3;
-        else if (strcmp(argv[1], "--test") == 0)
+        else if(strcmp(argv[1], "--randvnega") == 0)
             choice = 4;
+        else if (strcmp(argv[1], "--abvnega") == 0)
+            choice = 5;
+        else if (strcmp(argv[1], "--test") == 0)
+            choice = 6;
     }
 
     //default should be player vs player
@@ -39,30 +37,37 @@ int main(int argc, char ** argv)
     {
         //player vs player
         case 0:
-            //make sure to alternate onmove according to what side i play on server
-//            adversary.imcs_play(argc, argv);
-            adversary.test(-1);
+            adversary.imcs_play(argc, argv);
             break;
         //random
         case 1:
-            adversary.display();
+            adversary.display(-1);
             result = adversary.random_game(-1); //pass in -1 since white goes first
             fprintf(stdout, "%d\n", result);
             break;
         //1 player
         case 2:
-            adversary.display();
-            result = adversary.player_vs_ai(-1);
+            adversary.display(-1);
+            result = adversary.rand_vs_player(-1);
             fprintf(stdout, "%d\n", result);
             break;
         case 3:
-//            adversary.display();
-            result = adversary.rand_vs_nega(-1);
+            adversary.display(-1);
+            result = adversary.nega_vs_player(-1);
             fprintf(stdout, "%d\n", result);
             break;
         case 4:
-            result = adversary.test(-1);
+            adversary.display(-1);
+            result = adversary.rand_vs_nega(-1);
             fprintf(stdout, "%d\n", result);
+            break;
+        case 5:
+            adversary.display(-1);
+            result = adversary.abprune_vs_nega(-1);
+            fprintf(stdout, "%d\n", result);
+            break;
+        case 6:
+            adversary.test(-1);
             break;
         //error state
         default:

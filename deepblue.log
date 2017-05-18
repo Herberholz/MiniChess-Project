@@ -1,9 +1,6 @@
 100 imcs 2.5
 201 hello DeepBlue
-103 12398 game waiting for offer acceptance
-waiting for opponent
 105 W 5:00 5:00 game starts
-opponent found
 
 1 W
 kqbnr
@@ -14,46 +11,180 @@ PPPPP
 RNBQK
 
 ? 05:00.000 05:00.000
-received move a5-a4
-
-
 
 
 2 W
 kqbnr
-.pppp
-p....
-N....
-PPPPP
-R.BQK
+pppp.
+....p
+.P...
+P.PPP
+RNBQK
 
-? 05:00.000 03:55.813
-received move e5-e4
-
-
+? 05:00.000 04:59.999
 
 
 3 W
-kqbnr
-.ppp.
-p...p
-N...P
-PPPP.
-R.BQK
+kqbn.
+ppppr
+....p
+BP...
+P.PPP
+RN.QK
 
-? 04:59.948 02:50.596
-received move b5-b4
-
-
+? 04:58.945 04:59.955
 
 
 4 W
-kqbnr
-..pp.
-pp..p
-N...P
-PPPPQ
-R.B.K
+kqbn.
+ppppr
+.....
+BP..p
+P.PPP
+RNQ.K
 
-? 04:59.894 02:00.477
+? 04:57.419 04:59.914
+
+
+5 W
+kqbn.
+p.ppr
+.p...
+BP..P
+P.P.P
+RNQ.K
+
+? 04:54.307 04:59.870
+
+
+6 W
+kq.n.
+p.ppr
+bp...
+.P..P
+P.P.P
+RNQ.K
+
+? 04:46.141 04:59.828
+
+
+7 W
+kq.n.
+p.pp.
+Pp..r
+....P
+P.P.P
+RNQ.K
+
+? 04:38.070 04:59.787
+
+
+8 W
+kq.n.
+p.pp.
+P...r
+.p..P
+P.PQP
+RN..K
+
+? 04:33.058 04:59.743
+
+
+9 W
+kq.n.
+p..p.
+P.p.r
+.P..P
+P..QP
+RN..K
+
+? 04:17.449 04:59.700
+
+
+10 W
+kq.n.
+p..pr
+P.p..
+.PN.P
+P..QP
+R...K
+
+? 04:00.565 04:59.657
+
+
+11 W
+k..n.
+p.qNr
+P.p..
+.P..P
+P..QP
+R...K
+
+? 03:37.831 04:59.615
+
+
+12 W
+k..n.
+p.q.r
+P....
+.pN.P
+P..QP
+R...K
+
+? 03:07.582 04:59.572
+
+
+13 W
+k.qn.
+p...r
+P....
+.PN.P
+...QP
+R...K
+
+? 02:21.159 04:59.528
+
+
+14 W
+k.qn.
+p.r..
+P....
+.PN.P
+...QP
+...RK
+
+? 01:34.887 04:59.485
+
+
+15 W
+k..q.
+p.r..
+P....
+.PN.P
+....P
+...RK
+
+? 01:13.275 04:59.442
+
+
+16 W
+k.rR.
+p....
+P....
+.PN.P
+....P
+....K
+
+? 01:03.344 04:59.401
+
+
+17 W
+.kR..
+p....
+P....
+.PN.P
+....P
+....K
+
+? 01:01.345 04:59.360
 = W wins

@@ -4,12 +4,9 @@
 
 #include "board.h"
 
-//would be useful to have a piece list that contains locations of each piece on board
-//each opponent would have their own piece list
 
 
-
-//Constructor for struct
+//Constructor for move struct
 Move::Move()
 {
    from_row = -1;
@@ -30,13 +27,11 @@ Move::Move()
 //Constructor
 Board::Board()
 {
-    onmove = -1;  //indicates that white is on move
-    move_num = 0; //holds how many moves have gone by
-    move_index = 0; //set to zero to indicate first move is best unless specified
-    string[0] = '\0';
+    onmove = -1;      //indicates that white is on move
+    move_num = 1;     //holds how many moves have gone by
+    move_index = 0;   //set to zero to indicate first move is best unless specified
+    string[0] = '\0'; //holds the string representation of board coordinates
 
-    //XXX temporarily hard code board and then copy to actual board
-    
     char temp[ROW_DIM][COL_DIM] = {
         {'k','q','b','n','r','\0'},
         {'p','p','p','p','p','\0'},
@@ -46,6 +41,7 @@ Board::Board()
         {'R','N','B','Q','K','\0'}
     };
     
+    //copies board over
     for(int i = 0; i < ROW_DIM; ++i)
         for(int j = 0; j < COL_DIM; ++j)
             board[i][j] = temp[i][j];
@@ -53,18 +49,20 @@ Board::Board()
 
 
 
-//Task:
-void Board::display()
+//Task:   Displays move number, side on move, and board state
+//Input:  Side on move
+//Output: Board representation to stdout
+void Board::display(int player)
 {
-    char color;
+    char color; //holds what color is on move
 
-    if(onmove == 1)
+    if(player == 1)
         color = 'B';
-    else if(onmove == -1)
+    else if(player == -1)
         color = 'W';
     else
     {
-        fprintf(stderr, "onmove is not valid\n");
+        fprintf(stderr, "Player onmove is not valid\n");
         exit(0);
     }
 
@@ -77,7 +75,9 @@ void Board::display()
 
 
 
-//Task:
+//Task:   Used to display the list of moves available
+//Input:  List of moves and the index which indicates how far to travel in array
+//Output: List of available moves to stdout
 void Board::display_moves(Move list[], int index)
 {
     for(int i = 0; i < index; ++i)
@@ -91,13 +91,13 @@ void Board::display_moves(Move list[], int index)
 
 
 
-//Task:
+//Task:   Reads in a board representation from stdin
+//Input:  Board representation, move number , and side on move
+//Output: N/A
 int Board::read_board()
 {
-    char color;
+    char color; //holds side on move
 
-    //Take heed when reading into move_num
-    //if my move_num is different from opponents at start will it be off??
     fscanf(stdin, "%d", &move_num);
     fscanf(stdin, "%s", &color);
 
@@ -119,24 +119,23 @@ int Board::read_board()
 
 
 
-//Task:
+//Task:   Takes a single move struct and uses it to physically make move on board
+//Input:  Single move struct
+//Output: Returns if win was found from making move
 int Board::move(Move & loc)
 {
-    //simple make move
-    //have to deal with promotions and points still
-    int piece = 0;
-    int queen = 0;
-    int win = 0;
+    int piece = 0; //holds piece at point of origin
+    int queen = 0; //holds ascii value of queen for side on move
+    int win = 0;   //holds whether move ends in a win
 
     if(onmove == 1)
         queen = 113;
     else if(onmove == -1)
         queen = 81;
- 
+
+    //if row/col are invalid then return error and crash
     if(loc.to_row < 0 || loc.to_row > 5)
     {
-        //display();
-        fprintf(stdout, "%d\n", loc.to_row);
         fprintf(stderr, "Invalid row move\n");
         exit(0);
     }
@@ -146,9 +145,11 @@ int Board::move(Move & loc)
         exit(0);
     }
 
+    //store piece at origin and set to '.'
     piece = board[loc.from_row][loc.from_col];
     board[loc.from_row][loc.from_col] = 46;
 
+    //if move location is not empty then handle capture case
     if(board[loc.to_row][loc.to_col] != 46)
     {
         loc.piece_capture = board[loc.to_row][loc.to_col];
@@ -170,23 +171,26 @@ int Board::move(Move & loc)
 
 
 
-//Task:
+//Task:   Takes in a char array containing valid move
+//Input:  Char array containing valid move (EX: a2-a3)
+//Output: Returns if win condition is met
 int Board::move(char coord[])
 {
-    int piece   = 0;
-    int win     = 0;
-    int queen   = 0;
-    int capture = 0;
-    int fr_col  = 0;
-    int to_col  = 0;
-    int fr_row  = -1;
-    int to_row  = -1;
+    int piece   = 0;  //holds piece at origin location
+    int win     = 0;  //holds if win condition met
+    int queen   = 0;  //holds ascii value of queen for side on move
+    int capture = 0;  //holds piece to be captured and checks if it is a king
+    int fr_col  = -1;  //origin col
+    int to_col  = -1;  //move col
+    int fr_row  = -1; //origin row
+    int to_row  = -1; //move row
 
     fr_col = coord[0] - 97; //a is 97, subtract that to get the col number
-    to_col = coord[3] - 97;
-    fr_row = coord[1] - 54;
-    to_row = coord[4] - 54;
+    to_col = coord[3] - 97; //a is 97, subtract that to get the col number
+    fr_row = coord[1] - 54; //subtracts value by ascii value of 6
+    to_row = coord[4] - 54; //subtracts value by ascii value of 6
 
+    //if not 0 then flip sign
     if(fr_row != 0)
         fr_row = - fr_row;
     if(to_row != 0)
@@ -197,9 +201,11 @@ int Board::move(char coord[])
     else if(onmove == -1)
         queen = 81;
 
+    //capture piece value from origin and make '.'
     piece = board[fr_row][fr_col];
     board[fr_row][fr_col] = 46;
     
+    //handle capture condition
     if(board[to_row][to_col] != 46)
     {
         capture = board[to_row][to_col];
@@ -207,6 +213,7 @@ int Board::move(char coord[])
             win = 1;
     }
     
+    //if moving to a back row and piece is a pawn then promote to queen
     if((to_row == 0 || to_row == 5) && (piece == 80 || piece == 112))
         board[to_row][to_col] = queen;
     else
@@ -217,11 +224,14 @@ int Board::move(char coord[])
 
 
 
-//Task:
+//Task:   Takes a move that is passed in and wipes it off the board
+//Input:  Struct of move taken
+//Output: N/A
 int Board::undo_move(Move loc)
 {
-    int piece = 0;
+    int piece = 0; //holds piece from location being undone
 
+    //if row/col are not in bounds then through an error and crash
     if(loc.to_row < 0 || loc.to_row > 5)
     {
         fprintf(stderr, "Invalid row move\n");
@@ -233,6 +243,7 @@ int Board::undo_move(Move loc)
         exit(0);
     }
 
+    //undo move and put back at original location
     piece = board[loc.to_row][loc.to_col];
     board[loc.to_row][loc.to_col] = 46;
     board[loc.from_row][loc.from_col] = piece;
@@ -251,16 +262,21 @@ int Board::undo_move(Move loc)
 }
 
 
-//Task:
+
+//Task:   Takes in list of moves and sorts them by score of board state
+//Input:  Takes original list, new list to be filled, and then number of moves
+//Output: Returns new ordered list by reference 
 int Board::move_order(Move source[], Move dest[], int total)
 {
-    int max = -100000;
+    int max = -100000;  //holds max score
     int grabbed[total]; //holds one if element transfered
-    int hold = -1;
+    int hold = -1;      //holds index of move to be placed 
 
     //initialize grabbed
     for(int k = 0; k < total; ++k)
         grabbed[k] = 0;
+
+    //XXX Try to find better sort algorithm
 
     //fill move struct with values of best move until end and then swap 
     for(int i = 0; i < total; ++i)
@@ -300,38 +316,44 @@ int Board::move_order(Move source[], Move dest[], int total)
         dest[i].promotion = source[hold].promotion;
         dest[i].piece_capture = source[hold].piece_capture;
         dest[i].score = source[hold].score;
-}
-    //display_moves(dest, total);
+    }
     
     return 0;
 }
 
 
-//Task:
+
+//Task:   Scans for available moves
+//Input:  Takes in original x/y location and how far to move x/y, flag that indicates whether
+//          to stop short, capture flag, move list, and index for move list
+//Output: Fills move list by using pass by reference
 int Board::scan(int x0,int y0,int dx,int dy,int stop_short,int capture,Move list[],int & index)
 {
-    //XXX save time by saving extra state to avoid piece scan
-    int x = x0;
-    int y = y0;
-    int piece = board[y0][x0];
-    int color1 = 0;
-    int color2 = 0;
+    int x = x0;                //sets x to origin
+    int y = y0;                //sets y to origin
+    int piece = board[y0][x0]; //holds piece value at current board location
+    int color1 = 0;            //flag for back piece
+    int color2 = 0;            //flag for white piece
 
+    //sets color flag based on what ascii range piece falls into
     if(piece > 97 && piece < 115)
         color1 = 1;
     else if(piece > 65 && piece < 83)
         color1 = 2;
     
+    //loop until other piece is hit or until piece leaves board
     do
     {
         x += dx;
         y += dy;
+
         //changed boundaries to mimic real x and y graph
         //so x is j and y is i
         if(x < 0 || x > 4)
             break;
         if(y < 0 || y > 5)
             break;
+        
         if(board[y][x] != 46) //board position != period
         {
             if(board[y][x] > 97 && board[y][x] < 115)
@@ -347,7 +369,6 @@ int Board::scan(int x0,int y0,int dx,int dy,int stop_short,int capture,Move list
         else if(capture == 2)
             break;
 
-        //fill_move(x0,y0,x,y,list,index);
         //insert move 
         list[index].from_row = y0;
         list[index].from_col = x0;
@@ -370,10 +391,13 @@ int Board::scan(int x0,int y0,int dx,int dy,int stop_short,int capture,Move list
 
 
 
-//Task:
+//Task:   Runs a symetrical scan of the board
+//Input:  Takes in original x/y location and how far to move x/y, flag that indicates whether
+//          to stop short, capture flag, move list, and index for move list
+//Output: Fills move list by using pass by reference
 int Board::symm_scan(int x,int y,int dx,int dy,int stop_short,int capture,Move list[],int & index)
 {
-    int temp = 0;
+    int temp = 0; //temporary variable
 
     for(int i = 0; i < 4; ++i)
     {
@@ -389,23 +413,26 @@ int Board::symm_scan(int x,int y,int dx,int dy,int stop_short,int capture,Move l
 
 
 
-//Task:
+//Task:   Based on what piece is on the board, pass in specific arguements to symscan/scan
+//Input:  Takes in location on board, move list to be filled , and index in move list
+//Output: Returns Move list using pass by reference
 int Board::move_list(int x, int y, Move list[], int & index)
 {
     //XXX Move this beginning bit out of the double for loop to save time
     //store in struct? piece_rep
     //-----------------------------------------------------------------------
     int stop_short = 0; //indicates whether to stop or not
-    int capture = 1; //default true, then false or only
-    int direction = 1; //determines where to move pawn on y axis
-    int piece = 0;
-    int king = 0;
+    int capture = 1;    //default true, then false or only
+    int direction = 1;  //determines where to move pawn on y axis
+    int piece = 0;      //holds piece at board location
+    int king = 0;       //rest of values are ascii values for pieces
     int queen = 0;
     int bishop = 0;
     int knight = 0;
     int rook = 0;
     int pawn = 0;
 
+    //set piece values based on who is on move
     if(onmove == 1)
     {
         king = 107;
@@ -486,8 +513,9 @@ int Board::move_list(int x, int y, Move list[], int & index)
 
 
 
-//Task:
-//Output: Returns a list of strings/arrays (a1-a2, b1-b2)
+//Task:   Goes through and finds all available moves of pieces for player on move
+//Input:  Move list to be filled
+//Output: Returns the index which is the total number of moves
 int Board::movegen(Move list[])
 {
     //XXX need to try and improve performance of move gen. 
@@ -519,7 +547,7 @@ int Board::movegen(Move list[])
     //need to pass array in and use index to mark where we are
     for(int i = 0; i < ROW_DIM; ++i)
     {
-        for(int j = 0; j < COL_DIM-1; ++j)//used Col_dim - 1 to avoid null character
+        for(int j = 0; j < COL_DIM-1; ++j) //used Col_dim - 1 to avoid null character
         {
             piece = board[i][j];
 
@@ -530,16 +558,6 @@ int Board::movegen(Move list[])
         }
     }
 
-//    display_moves(list,index);
-    
-//    for(int i = 0; i < index; ++i)
-//    {
-//        win = move(list[i]);
-//        display();
-//        undo_move(list[i]);
-//        display();
-    //}
-
     return index;
 }
 
@@ -549,22 +567,24 @@ int Board::movegen(Move list[])
 //must change program to pick random move worst for opponent
 //program must calculate value of state opponent gets for each possible move, choose worst
 //value of state is positive when side on move has advantage
-//Task:
+
+//Task:   Find score for state of board by finding difference of pieces
 int Board::state_eval(Move &loc)
 {
     //take in single move struct
-    //make move and eval state then undo move made and return score/add score to struct
+    //make move, eval state, and then undo move made. Return score/add score to struct
     //-make sure to increase points for pawn that has free pass to promotion
-    //XXX Make sure to keep track of overall score for each player, not each move individually
-    int result = 0;
-    int piece = 0;
-    int player = 0;
+    
+    int result = 0; //holds return value from move function
+    int piece = 0;  //holds piece value from board
+    int player = 0; //holds flag to indicate which color the piece is
     int score1 = 0; //holds score for player 1
     int score2 = 0; //holds score for player 2
     int sum = 0;    //holds difference between scores
     
     result = move(loc); //returns if king is taken
 
+    //if king captured from move then set score and return
     if(result == 1)
     {
         undo_move(loc);
@@ -572,6 +592,7 @@ int Board::state_eval(Move &loc)
         return 1;
     }
  
+    //loop through board and add up points for both sides
     for(int i = 0; i < ROW_DIM; ++i)
     {
         for(int j = 0; j < COL_DIM-1; ++j)
@@ -583,6 +604,7 @@ int Board::state_eval(Move &loc)
             else if(piece > 65 && piece < 83)
                 player = 2; //White
             
+            //king is not taken into account for score evaluation
             if(piece != 46)
             {
                 if(player == 1)
@@ -633,6 +655,8 @@ int Board::state_eval(Move &loc)
             }
         }
     }
+
+    //take difference based on who is on move
     if(onmove == 1)
         sum = score1 - score2;
     else if(onmove == -1)
@@ -644,20 +668,22 @@ int Board::state_eval(Move &loc)
 }
 
 
-//Task:
+
+//Task:   Recursively goes through possible moves and finds best possible move to make
+//Input:  Takes player on move, depth of search, and score of board state from move
+//Output: Returns the best score found from search
 int Board::negamax(int player, int depth, int score)
 {
-    //move_index = 0;
+    //Base case that searches for depth of 0 or score to end game
+    //score passed from opponent perspective so i negate the score when returning it
     if(depth <= 0 || score >= 10000)
     {
         return -score; //flip score since it is score from opponent
     }
-//    fprintf(stdout, "%d\n", onmove);
     onmove = player; //be cautious when returning that i am on right player move
-//    fprintf(stdout, "%d\n\n", onmove);
 
-    Move list[102];
-    int moves = movegen(list);
+    Move list[70];  //holds list of moves
+    int moves = movegen(list); //generates list of moves
    
     //if no legal moves, then return loss
     if(moves == 0)
@@ -665,47 +691,25 @@ int Board::negamax(int player, int depth, int score)
         onmove = - player;
         return -10000;
     }
-    Move ordered[moves];
-    move_order(list, ordered, moves);
+
+    Move ordered[moves]; //holds list of ordered moves
+    move_order(list, ordered, moves); //orders moves
     
-//    display_moves(ordered, moves);
- 
     move(ordered[0]); //make move on board
-//    display();    
-//    if(depth == DEPTH-1)
-//        display();
     int max_val = - negamax(- player, depth - 1, ordered[0].score);
-
-    onmove = player;
-
+    onmove = player; //make sure to set onmove to appropriate player
     undo_move(ordered[0]);//undo move made
     
-    //fprintf(stdout, "Player: %d\n", player);
-    //fprintf(stdout, "Max_val: %d\n", max_val);        
-    //display_moves(ordered, moves);
-
     for(int i = 1; i < moves; ++i) //starts at element 1 due to move 0 being taken
     {
-        onmove = player;
+        onmove = player; //sets to appropriate player on move
 
-        move(ordered[i]);
-//        display();
-//        if(depth == DEPTH-1)
-//            display();
+        move(ordered[i]); //makes move
         int val = - negamax(- player, depth - 1, ordered[i].score);
 
-    //    fprintf(stdout, "%d\n", onmove);
-        onmove = player;
-        undo_move(ordered[i]);
+        onmove = player; //sets to appropriate player on move
+        undo_move(ordered[i]); //undo move
 
-    //    fprintf(stdout, "Val: %d\n\n", val);
-  
-//        if(depth == DEPTH)
-//        {
-//            fprintf(stdout, "Player: %d\n", player);
-//            fprintf(stdout, "Max_val: %d\n", max_val);
-//            fprintf(stdout, "Val: %d\n\n", val);
-//        }
         if(val > max_val)
         {
             max_val = val;
@@ -714,46 +718,33 @@ int Board::negamax(int player, int depth, int score)
                 move_index = i;
             }
         }
-
     }
 
+    //before last return make selected move, display it, and then store in string
     if(depth == DEPTH)
     {
-        //if max val is take king then do it
-//        if(max_val == 10000)
-//        {
-//            fprintf(stdout, "takeKing\n");
-//            move(ordered[0]);
-//            display();
-//            sprintf(string, "%c%d-%c%d", ordered[0].f_col_coord,
-//                                         ordered[0].f_row_coord,
-//                                         ordered[0].t_col_coord,
-//                                         ordered[0].t_row_coord);
-//        }
-//        else
-//        {
-//            fprintf(stdout, "%d\n", onmove);
             onmove = player;
             move(ordered[move_index]);
-            display();
+            display(-player);
             sprintf(string, "%c%d-%c%d", ordered[move_index].f_col_coord,
                                          ordered[move_index].f_row_coord,
                                          ordered[move_index].t_col_coord,
                                          ordered[move_index].t_row_coord);
-
-//        }
-//        fprintf(stdout, "%d\n", move_index);
-//        display_moves(ordered, moves);
     }
 
-    //onmove = - player;
     return max_val;
 }
 
 
-//Task:
-int Board::ab_prune(int player)
+
+//Task:   Will search through state space like negamax but prune out branches of 
+//          the tree to speed up the search, thus allowing for deeper searches
+//Input:  Player on move, Depth to search, score of state, alpha and beta value
+//Output: The value of the best state evaluation found
+int Board::ab_prune(int player, int depth, int score, int alpha, int beta)
 {
+    
+    //value = - ab_prune(-player, depth-1, ordered[i].score, - beta, - alpha);
     
     return 0;
 }

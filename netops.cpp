@@ -2,6 +2,9 @@
 //cherber2@pdx.edu
 //Minichess
 
+//The follow code is not my own work. The code can be referenced at 
+//https://github.com/BartMassey/imcs/tree/master/client/c
+
 #include "netops.h"
 
 

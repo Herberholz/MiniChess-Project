@@ -2,6 +2,9 @@
 //Cherber2@pdx.edu
 //Minichess
 
+//The code for the following class is not of my own work. It can be referenced at
+//https://github.com/BartMassey/imcs/tree/master/client/c
+
 #include <assert.h>
 #include <netdb.h>
 #include <stdio.h>
@@ -13,7 +16,7 @@
 
 
 
-//
+//Netops class holds all the support to connect to IMCS server
 class Netops
 {
     public:

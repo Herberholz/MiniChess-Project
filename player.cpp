@@ -8,17 +8,21 @@
 //random game or player vs player game. that would defeat purpose of player class.
 //need to make sure player can make random game possible from outside board class
 
-Player::Player()
-{
 
-}
 
+//Constructer but nothing valuable to initialize
+Player::Player() {}
+
+
+
+//Task:   Pits a random player against random player
+//Input:  Side on move
+//Output: Value of who won
 int Player::random_game(int player)
 {
-    //move function will return if king is taken
-    Move list[102];
-    onmove = player;
-    int moves = movegen(list);
+    Move list[70];            //list that has size of all possible moves
+    onmove = player;           //set onmove to appropriate player
+    int moves = movegen(list); //generate moves
 
     //if no legal move available then you lose
     if(!moves)
@@ -27,9 +31,8 @@ int Player::random_game(int player)
     //if move num is going past 40 specify a draw
     if(player == -1)
     {
-        if(move_num == 40)
+        if(move_num == 41) //1-41 = 40
             return 0;
-        ++move_num;
     }
 
     int max_val = -1;
@@ -38,8 +41,10 @@ int Player::random_game(int player)
     
     //make random move from list
     int result = move(list[rando]);
-    display();
-    
+    display(-player);
+    if(player == -1)
+        ++move_num;
+
     //king caught
     if(result == 1)
         return 1;
@@ -52,13 +57,17 @@ int Player::random_game(int player)
     return max_val;
 }
 
-int Player::player_vs_ai(int player)
+
+
+//Task:   Pits a random player against a human player
+//Input:  Side on move
+//Ouput:  Value indicating who won
+int Player::rand_vs_player(int player)
 {
-    //move function will return if king is taken
-    Move list[102];
-    onmove = player;
-    int result = 0;
-    int moves = movegen(list);
+    Move list[70];   //holds list of moves that is the size of all available moves
+    int result = 0;  //holds value that move function returns
+    onmove = player; //sets onmove to current player
+    int moves = movegen(list); //generates moves
 
     //if no legal move available then you lose
     if(!moves)
@@ -67,34 +76,36 @@ int Player::player_vs_ai(int player)
     //if move num is going past 40 specify a draw
     if(player == -1)
     {
-        if(move_num == 40)
+        if(move_num == 41) //1-41 = 40 moves
             return 0;
-        ++move_num;
     }
 
     int max_val = -1;
     int val = -2;
     int rando = rand() % moves;
-    
+   
+    //had to place display() in both if and else to avoid move_num misprint
     if(onmove == -1)
     {
         char coords[6];
         fprintf(stdout, "Please select move(EX: a2-a3): ");
         fscanf(stdin, "%s", coords);
         result = move(coords); //move by passing in coords
+        display(-player);
+        ++move_num;
     }
     else
     {
         //make random move from list
         result = move(list[rando]);
+        display(-player);
     }
-    display();
     
     //king caught
     if(result == 1)
         return 1;
     else
-        val = -player_vs_ai(- player);
+        val = -rand_vs_player(- player);
     
     if(val > max_val)
         max_val = val;
@@ -102,12 +113,17 @@ int Player::player_vs_ai(int player)
     return max_val;
 }
 
-int Player::player_vs_player(int player)
+
+
+//Task:   Pits a negamax player against a human player
+//Input:  Player on move
+//Output: Value indicating which player won
+int Player::nega_vs_player(int player)
 {
-    Move list[102];
-    onmove = player;
-    int result = 0;
-    int moves = movegen(list);
+    Move list[70];    //move list with size that will allow all possible moves
+    onmove = player;  //sets onmove to current player
+    int result = 0;   //holds result that negamax returns
+    int moves = movegen(list); //generates moves
 
     //if no legal move available then you lose
     if(!moves)
@@ -116,9 +132,8 @@ int Player::player_vs_player(int player)
     //if move num is going past 40 specify a draw
     if(player == -1)
     {
-        if(move_num == 40)
+        if(move_num == 41)
             return 0;
-        ++move_num;
     }
 
     int max_val = -1;
@@ -130,23 +145,22 @@ int Player::player_vs_player(int player)
         fprintf(stdout, "Please select move(EX: a2-a3): ");
         fscanf(stdin, "%s", coords);
         result = move(coords); //move by passing in coords
-        display();
+        display(-player);
+        ++move_num;
     }
     else
     {
-        //make random move from list
         int depth = DEPTH;
         result = negamax(onmove, depth, 0);
-        fprintf(stdout, "%d\n", result);
     }
     
     //king caught
     if(result >= 10000)
         return 1;
-    else if(result <= -10000)
+    else if(result <= -10000) //opponent won
         return -1;
     else
-        val = -player_vs_player(- player);
+        val = -nega_vs_player(- player);
     
     if(val > max_val)
         max_val = val;
@@ -155,13 +169,17 @@ int Player::player_vs_player(int player)
 }
 
 
+
+//Task:   Pits random player against negamax player
+//Input:  Player on side
+//Output: Value indicating which side won 
 int Player::rand_vs_nega(int player)
 {
-    Move list[102];
-    onmove = player;
-    int result = 0;
-    int rand_win = 0;
-    int moves = movegen(list);
+    Move list[70];    //move list of all possible moves
+    onmove = player;  //makes sure side on move is correct
+    int result = 0;   //holds return result of negamax
+    int rand_win = 0; //holds return result of random move
+    int moves = movegen(list); //generates all possible moves
 
     //if no legal move available then you lose
     if(!moves)
@@ -170,9 +188,8 @@ int Player::rand_vs_nega(int player)
     //if move num is going past 40 specify a draw
     if(player == -1)
     {
-        if(move_num == 40)
+        if(move_num == 41)
             return 0;
-        ++move_num;
     }
 
     int max_val = -1;
@@ -182,13 +199,13 @@ int Player::rand_vs_nega(int player)
     {
         move_index = 0;
         result = negamax(onmove, DEPTH, 0);
-//        fprintf(stdout, "%d\n\n", result);
+        ++move_num;
     }
     else
     {
         int rando = rand() % moves;
         rand_win = move(list[rando]);
-        display();
+        display(-player);
     }
     
     //king caught
@@ -208,23 +225,41 @@ int Player::rand_vs_nega(int player)
 }
 
 
-int Player::test(int player)
+
+//Task:
+//Input:
+//Output:
+int Player::abprune_vs_nega(int player)
 {
-    onmove = player;
-    read_board();
-    display();
-    int val = negamax(player, DEPTH, 0);
-    fprintf(stdout, "%d\n", val);
-    fprintf(stdout, "Move_index: %d\n", move_index);
 
     return 0;
 }
 
 
-//Task:
+
+//Task:   Reads in a board from stdin and then evaluates and makes move
+//Input:  Player on move
+//Output: N/A
+void Player::test(int player)
+{
+    onmove = player;
+    read_board();
+    display(player);
+    int val = negamax(player, DEPTH, 0);
+    fprintf(stdout, "%d\n", val);
+    fprintf(stdout, "Move_index: %d\n", move_index);
+}
+
+
+
+//Task:   Connects to imcs server to play a game against a bot/player
+//Input:  Command line values (EX: ./a.out A W13842 Username password)
+//Output: N/A
 int Player::imcs_play(int argc, char ** argv)
 {
     //O W DeepBlue Password
+    //A B17534 DeepBlue Password
+
     setlinebuf(stdout);
     if(argc < 5 || argc > 7)
     {
@@ -235,9 +270,6 @@ int Player::imcs_play(int argc, char ** argv)
     char mecolor = '?';
     int megame = 0;
     
-    //fprintf(stdout, "%c\n", argv[1][0]); //O
-    //fprintf(stdout, "%d\n", argv[2][0]); //W/B
-
     switch(argv[1][0])
     {
         case 'O':
@@ -268,7 +300,7 @@ int Player::imcs_play(int argc, char ** argv)
         {
             char ch = argv[2][0];
             if(isdigit(ch))
-                megame = atoi(&argv[2][1]);
+                megame = atoi(&argv[2][0]);
             else if(ch == 'W' || ch == 'B')
             {
                 mecolor = ch;
@@ -277,7 +309,7 @@ int Player::imcs_play(int argc, char ** argv)
                 //set onmove to correct player
                 if(mecolor == 'W')
                     onmove = -1;
-                else if(onmove == 'B')
+                else if(mecolor == 'B')
                     onmove = 1;
                 else
                 {
@@ -355,7 +387,7 @@ int Player::imcs_play(int argc, char ** argv)
     }
 
     //------------------------------------------------------------
-    //can start using my code here
+    //can start implementing code to manipulate board below
 
     //need to pull from nf
     //cover cases for ?, !, =, X, 
@@ -383,8 +415,9 @@ int Player::imcs_play(int argc, char ** argv)
 
                 //insert time management here
                 move_index = 0; //reset move index
+                ++move_num;
                 negamax(onmove, DEPTH, 0);
-                net.logmsg((char*)"made move %s\n\n",string);
+                //net.logmsg((char*)"made move %s\n\n",string);
                 net.sendcmd(nf, string);
                 //if ponder then run negamax again
                 continue;
@@ -398,8 +431,7 @@ int Player::imcs_play(int argc, char ** argv)
                 while(isspace(ch));
                 ungetc(ch, nf);
                 fscanf(nf, "%s", temp);
-
-                net.logmsg((char*)"received move %s\n\n",temp);
+                //net.logmsg((char*)"received move %s\n\n",temp);
                 move(temp); //make move
                 continue;
             case '=':
