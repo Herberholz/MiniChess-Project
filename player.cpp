@@ -89,7 +89,12 @@ int Player::rand_vs_player(int player)
     {
         char coords[6];
         fprintf(stdout, "Please select move(EX: a2-a3): ");
-        fscanf(stdin, "%s", coords);
+        int check = fscanf(stdin, "%s", coords);
+        if(!check)
+        {
+            fprintf(stdout, "stdin error");
+            exit(0);
+        }
         result = move(coords); //move by passing in coords
         display(-player);
         ++move_num;
@@ -143,7 +148,12 @@ int Player::nega_vs_player(int player)
     {
         char coords[6];
         fprintf(stdout, "Please select move(EX: a2-a3): ");
-        fscanf(stdin, "%s", coords);
+        int check  = fscanf(stdin, "%s", coords);
+        if(!check)
+        {
+            fprintf(stdout, "stdin error");
+            exit(0);
+        }
         result = move(coords); //move by passing in coords
         display(-player);
         ++move_num;
@@ -231,8 +241,48 @@ int Player::rand_vs_nega(int player)
 //Output:
 int Player::abprune_vs_nega(int player)
 {
+    onmove = player;  //makes sure side on move is correct
+    int result = 0;   //holds return result of negamax
+    //if move num is going past 40 specify a draw
+    if(player == -1)
+    {
+        if(move_num == 41)
+            return 0;
+    }
 
-    return 0;
+    int max_val = -1;
+    int val = -2;
+    
+    fprintf(stdout, "Player: %d\n", onmove);
+    
+    if(onmove == -1)
+    {
+        move_index = 0;
+        string[0] = '\0';
+        ab_prune(onmove, ABDEPTH, 0, -10000, 10000);
+        fprintf(stdout, "Move: %s\n", string);
+//        move(string);
+//        display(-player);
+//        result = negamax(onmove,DEPTH,0);
+        ++move_num;
+    }
+    else
+    {
+        move_index = 0;
+        result = negamax(onmove, DEPTH, 0);
+    }
+    
+    if(result >= 10000)
+        return 1;
+    else if(result <= -10000)
+        return -1;
+    else
+        val = -abprune_vs_nega(- player);
+    
+    if(val > max_val)
+        max_val = val;
+    
+    return max_val;
 }
 
 
@@ -242,10 +292,24 @@ int Player::abprune_vs_nega(int player)
 //Output: N/A
 void Player::test(int player)
 {
+    int val = 0;
     onmove = player;
     read_board();
     display(player);
-    int val = negamax(player, DEPTH, 0);
+    fprintf(stdout, "Negamax: \n\n" );
+    val = negamax(player, DEPTH, 0);
+    fprintf(stdout, "Move Taken: %s\n", string);
+    fprintf(stdout, "%d\n", val);
+    fprintf(stdout, "Move_index: %d\n", move_index);
+
+    move_index = 0;
+    string[0] = '\0';
+    
+    fprintf(stdout, "\n\nAlpha Beta: \n\n" );
+    val = ab_prune(onmove, ABDEPTH, 0, -10000, 10000);
+//    move(string);
+//    display(-player);
+    fprintf(stdout, "Move Taken: %s\n", string);
     fprintf(stdout, "%d\n", val);
     fprintf(stdout, "Move_index: %d\n", move_index);
 }
@@ -279,11 +343,11 @@ int Player::imcs_play(int argc, char ** argv)
                 case 'B':
                 case '?':
                     mecolor = argv[2][0];
-                    
+
                     //set onmove to correct player
                     if(mecolor == 'W')
                         onmove = -1;
-                    else if(onmove == 'B')
+                    else if(mecolor == 'B')
                         onmove = 1;
                     else
                     {
@@ -300,12 +364,12 @@ int Player::imcs_play(int argc, char ** argv)
         {
             char ch = argv[2][0];
             if(isdigit(ch))
-                megame = atoi(&argv[2][0]);
-            else if(ch == 'W' || ch == 'B')
+                megame = atoi(&argv[2][1]);
+            if(ch == 'W' || ch == 'B')
             {
                 mecolor = ch;
                 megame = atoi(&argv[2][1]);
-                
+     
                 //set onmove to correct player
                 if(mecolor == 'W')
                     onmove = -1;
@@ -397,6 +461,10 @@ int Player::imcs_play(int argc, char ** argv)
         int ch = fgetc(nf);
         int r = ungetc(ch, nf);
         assert(r != EOF);
+        if(move_num > 41)
+        {
+            exit(0);
+        }
 //        net.logmsg((char*)"ch= %c\n", ch);
         
 //        if(isdigit(ch))
@@ -411,29 +479,46 @@ int Player::imcs_play(int argc, char ** argv)
             {
                 char * r = net.getnet(nf, (char*)"?");
                 char * q = strtok(r, " ");
+                //int player = onmove;
                 assert(!strcmp(q, "?"));
 
                 //insert time management here
                 move_index = 0; //reset move index
+                string[0] = '\0';
+                
+//                negamax(player, DEPTH, 0);
+                ab_prune(onmove, ABDEPTH, 0, -10000, 10000);
+//                move(string);
+//                display(-player);
                 ++move_num;
-                negamax(onmove, DEPTH, 0);
-                //net.logmsg((char*)"made move %s\n\n",string);
+                
+                net.logmsg((char*)"made move %s\n\n",string);
                 net.sendcmd(nf, string);
+                //net.logmsg((char*)"SEG");
+
                 //if ponder then run negamax again
                 continue;
             }
             case '!':
+            {
                 assert(fgetc(nf) == '!');
                 int ch;
                 char temp[6];
+                temp[0] = '\0';
                 do
                     ch = fgetc(nf);
                 while(isspace(ch));
                 ungetc(ch, nf);
-                fscanf(nf, "%s", temp);
+                int issue = fscanf(nf, "%s", temp);
+                if(!issue)
+                {
+                    fprintf(stdout, "stdin error");
+                    exit(0);
+                }
                 //net.logmsg((char*)"received move %s\n\n",temp);
                 move(temp); //make move
                 continue;
+            }
             case '=':
                 (void) net.getnet(nf, (char*)"=");
                 break;

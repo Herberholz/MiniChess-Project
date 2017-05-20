@@ -1,7 +1,7 @@
-4 B
-kqb.r
+1 W
+kqbnr
 ppppp
-..n..
-...Q.
-P.PPP
-RNB.K
+.....
+.....
+PPPPP
+RNBQK

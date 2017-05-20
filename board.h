@@ -12,8 +12,9 @@
 
 const int ROW_DIM = 6; //Max row dimensions for board
 const int COL_DIM = 6; //Max col dimensions for board
-const int DEPTH = 4;   //Depth of how far Negamax/AB will search
-
+const int DEPTH = 4;   //Depth of how far Negamax will search
+const int ABDEPTH = 8; //Depth of how far Alpha Beta will search
+const int TEST = 5;
 
 //Struct holds move info for pieces on board
 struct Move
