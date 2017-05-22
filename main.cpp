@@ -30,6 +30,8 @@ int main(int argc, char ** argv)
             choice = 5;
         else if (strcmp(argv[1], "--test") == 0)
             choice = 6;
+        else if (strcmp(argv[1], "--testab") == 0)
+            choice = 7;
     }
 
     //default should be player vs player
@@ -67,7 +69,10 @@ int main(int argc, char ** argv)
             fprintf(stdout, "%d\n", result);
             break;
         case 6:
-            adversary.test(-1);
+            adversary.test();
+            break;
+        case 7:
+            adversary.test_ab(-1);
             break;
         //error state
         default:

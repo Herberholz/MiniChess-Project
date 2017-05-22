@@ -121,6 +121,7 @@ int Board::read_board()
         exit(0);
     }
 
+    display(onmove); //displays board that was read in
     return 0;
 }
 
@@ -129,15 +130,15 @@ int Board::read_board()
 //Task:   Takes a single move struct and uses it to physically make move on board
 //Input:  Single move struct
 //Output: Returns if win was found from making move
-int Board::move(Move & loc)
+int Board::move(Move & loc, int player)
 {
     int piece = 0; //holds piece at point of origin
     int queen = 0; //holds ascii value of queen for side on move
     int win = 0;   //holds whether move ends in a win
 
-    if(onmove == 1)
+    if(player == 1)
         queen = 113;
-    else if(onmove == -1)
+    else if(player == -1)
         queen = 81;
 
     //if row/col are invalid then return error and crash
@@ -181,7 +182,7 @@ int Board::move(Move & loc)
 //Task:   Takes in a char array containing valid move
 //Input:  Char array containing valid move (EX: a2-a3)
 //Output: Returns if win condition is met
-int Board::move(char coord[])
+int Board::move(char coord[],int player)
 {
     int piece   = 0;  //holds piece at origin location
     int win     = 0;  //holds if win condition met
@@ -203,9 +204,9 @@ int Board::move(char coord[])
     if(to_row != 0)
         to_row = - to_row;
 
-    if(onmove == 1)
+    if(player == 1)
         queen = 113;
-    else if(onmove == -1)
+    else if(player == -1)
         queen = 81;
 
     //capture piece value from origin and make '.'
@@ -300,6 +301,7 @@ int Board::move_order(Move source[], Move dest[], int total)
                     max = source[j].score;
                     hold = j; //holds location of max move score
                 }
+                #ifdef RANDOMIZE
                 else if(source[j].score == max)
                 {
                     //take random if score is the same
@@ -307,6 +309,7 @@ int Board::move_order(Move source[], Move dest[], int total)
                     if(rando)
                         hold = j;
                 }
+                #endif
             }
         }
         grabbed[hold] = 1;
@@ -523,7 +526,7 @@ int Board::move_list(int x, int y, Move list[], int & index)
 //Task:   Goes through and finds all available moves of pieces for player on move
 //Input:  Move list to be filled
 //Output: Returns the index which is the total number of moves
-int Board::movegen(Move list[])
+int Board::movegen(Move list[], int player)
 {
     //XXX need to try and improve performance of move gen. 
     //learn about lazy move generation and add move ordering
@@ -533,6 +536,7 @@ int Board::movegen(Move list[])
     int lower_bound = 0;
     int upper_bound = 0;
     int piece = 0;
+    onmove = player;
 
     //might need to pass in onmove from prune algorithm
     if(onmove == 1)
@@ -589,7 +593,7 @@ int Board::state_eval(Move &loc)
     int score2 = 0; //holds score for player 2
     int sum = 0;    //holds difference between scores
     
-    result = move(loc); //returns if king is taken
+    result = move(loc,onmove); //returns if king is taken
 
     //if king captured from move then set score and return
     if(result == 1)
@@ -687,34 +691,34 @@ int Board::negamax(int player, int depth, int score)
     {
         return -score; //flip score since it is score from opponent
     }
-    onmove = player; //be cautious when returning that i am on right player move
+    //onmove = player; //be cautious when returning that i am on right player move
 
     Move list[70];  //holds list of moves
-    int moves = movegen(list); //generates list of moves
+    int moves = movegen(list, player); //generates list of moves
    
     //if no legal moves, then return loss
     if(moves == 0)
     {
-        onmove = - player;
+        //onmove = - player;
         return -10000;
     }
 
     Move ordered[moves]; //holds list of ordered moves
     move_order(list, ordered, moves); //orders moves
     
-    move(ordered[0]); //make move on board
+    move(ordered[0], player); //make move on board
     int max_val = - negamax(- player, depth - 1, ordered[0].score);
-    onmove = player; //make sure to set onmove to appropriate player
+    //onmove = player; //make sure to set onmove to appropriate player
     undo_move(ordered[0]);//undo move made
     
     for(int i = 1; i < moves; ++i) //starts at element 1 due to move 0 being taken
     {
-        onmove = player; //sets to appropriate player on move
+        //onmove = player; //sets to appropriate player on move
 
-        move(ordered[i]); //makes move
+        move(ordered[i], player); //makes move
         int val = - negamax(- player, depth - 1, ordered[i].score);
 
-        onmove = player; //sets to appropriate player on move
+    //    onmove = player; //sets to appropriate player on move
         undo_move(ordered[i]); //undo move
 
         if(val > max_val)
@@ -733,16 +737,20 @@ int Board::negamax(int player, int depth, int score)
   //          display_moves(ordered, moves);
 
             onmove = player;
-            move(ordered[move_index]);
+            move(ordered[move_index], player);
             display(-player);
             sprintf(string, "%c%d-%c%d", ordered[move_index].f_col_coord,
                                          ordered[move_index].f_row_coord,
                                          ordered[move_index].t_col_coord,
                                          ordered[move_index].t_row_coord);
     //------------------------------------------------
-            //make sure to remove
+            #ifdef UNDO_NEGA
             undo_move(ordered[move_index]);
-
+            #endif
+//            if(ordered[move_index].score == 10000)
+//                return 1;
+//            else if(ordered[move_index].score == -10000)
+//                return -1;
     
 //            fprintf(stdout, "Max Val: %d\n" , max_val);
     }
@@ -764,35 +772,35 @@ int Board::ab_prune(int player, int depth, int score, int alpha, int beta)
         return -score; //flip score since it is score from opponent
     }
  
-    onmove = player; //be cautious when returning that i am on right player move
+  //  onmove = player; //be cautious when returning that i am on right player move
 
     Move list[70];  //holds list of moves
-    int moves = movegen(list); //generates list of moves
+    int moves = movegen(list, player); //generates list of moves
    
     //if no legal moves, then return loss
     if(moves == 0)
     {
-        onmove = - player;
+        //onmove = - player;
         return -10000;
     }
 
     Move ordered[moves]; //holds list of ordered moves
     move_order(list, ordered, moves); //orders moves
     
-    move(ordered[0]); //make move on board
+    move(ordered[0], player); //make move on board
     int max_val = - ab_prune(- player, depth - 1, ordered[0].score, - beta, - alpha);
 
-    onmove = player; //make sure to set onmove to appropriate player
+    //onmove = player; //make sure to set onmove to appropriate player
     undo_move(ordered[0]);//undo move made
 
-    if(max_val > beta)
+    if(max_val >= beta)
     {
 
         if(depth == ABDEPTH)
         {
 //            fprintf(stdout, "BEGINNING\n");
-            onmove = player;
-            move(ordered[0]);
+            //onmove = player;
+            move(ordered[0], player);
             display(-player);
             sprintf(string, "%c%d-%c%d", ordered[0].f_col_coord,
                                          ordered[0].f_row_coord,
@@ -809,28 +817,27 @@ int Board::ab_prune(int player, int depth, int score, int alpha, int beta)
 
     for(int i = 1; i < moves; ++i) //starts at element 1 due to move 0 being taken
     {
-        onmove = player; //sets to appropriate player on move
+        //onmove = player; //sets to appropriate player on move
 
-        move(ordered[i]); //makes move
+        move(ordered[i], player); //makes move
         int val = - ab_prune(- player, depth - 1, ordered[i].score, - beta, - alpha);
     
-        onmove = player; //sets to appropriate player on move
+        //onmove = player; //sets to appropriate player on move
         undo_move(ordered[i]); //undo move
 
         if(val >= beta)
         {
             if(depth == ABDEPTH) //keep track of which move leads to best path
             {               
-//                    fprintf(stdout, "Made itttttttttttt\n");
-//                    fprintf(stdout, "%d\n", val);
-//                    fprintf(stdout, "%d\n", beta);
-//                    fprintf(stdout, "I: %d\n", i);
-//                    display_moves(ordered, moves);
-                    move_index = i;
-                    onmove = player;
-                    move(ordered[move_index]);
-                    display(-player);
-                    sprintf(string, "%c%d-%c%d", ordered[move_index].f_col_coord,
+//                fprintf(stdout, "Made itttttttttttt\n");
+//                fprintf(stdout, "%d\n", val);
+//                fprintf(stdout, "%d\n", beta);
+//                display_moves(ordered, moves);
+                //onmove = player;
+                move_index = i;
+                move(ordered[move_index], player);
+                display(-player);
+                sprintf(string, "%c%d-%c%d", ordered[move_index].f_col_coord,
                                              ordered[move_index].f_row_coord,
                                              ordered[move_index].t_col_coord,
                                              ordered[move_index].t_row_coord);
@@ -855,8 +862,8 @@ int Board::ab_prune(int player, int depth, int score, int alpha, int beta)
     {
 //        fprintf(stdout, "EXIT\n");
 //        display_moves(ordered, moves);
-        onmove = player;
-        move(ordered[move_index]);
+        //onmove = player;
+        move(ordered[move_index], player);
         display(-player);
         sprintf(string, "%c%d-%c%d", ordered[move_index].f_col_coord,
                                      ordered[move_index].f_row_coord,

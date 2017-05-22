@@ -21,8 +21,8 @@ Player::Player() {}
 int Player::random_game(int player)
 {
     Move list[70];            //list that has size of all possible moves
-    onmove = player;           //set onmove to appropriate player
-    int moves = movegen(list); //generate moves
+    //onmove = player;           //set onmove to appropriate player
+    int moves = movegen(list,player); //generate moves
 
     //if no legal move available then you lose
     if(!moves)
@@ -40,7 +40,7 @@ int Player::random_game(int player)
     int rando = rand() % moves;
     
     //make random move from list
-    int result = move(list[rando]);
+    int result = move(list[rando],player);
     display(-player);
     if(player == -1)
         ++move_num;
@@ -66,8 +66,8 @@ int Player::rand_vs_player(int player)
 {
     Move list[70];   //holds list of moves that is the size of all available moves
     int result = 0;  //holds value that move function returns
-    onmove = player; //sets onmove to current player
-    int moves = movegen(list); //generates moves
+    //onmove = player; //sets onmove to current player
+    int moves = movegen(list,player); //generates moves
 
     //if no legal move available then you lose
     if(!moves)
@@ -85,7 +85,7 @@ int Player::rand_vs_player(int player)
     int rando = rand() % moves;
    
     //had to place display() in both if and else to avoid move_num misprint
-    if(onmove == -1)
+    if(player == -1)
     {
         char coords[6];
         fprintf(stdout, "Please select move(EX: a2-a3): ");
@@ -95,14 +95,14 @@ int Player::rand_vs_player(int player)
             fprintf(stdout, "stdin error");
             exit(0);
         }
-        result = move(coords); //move by passing in coords
+        result = move(coords,player); //move by passing in coords
         display(-player);
         ++move_num;
     }
     else
     {
         //make random move from list
-        result = move(list[rando]);
+        result = move(list[rando],player);
         display(-player);
     }
     
@@ -126,9 +126,9 @@ int Player::rand_vs_player(int player)
 int Player::nega_vs_player(int player)
 {
     Move list[70];    //move list with size that will allow all possible moves
-    onmove = player;  //sets onmove to current player
+    //onmove = player;  //sets onmove to current player
     int result = 0;   //holds result that negamax returns
-    int moves = movegen(list); //generates moves
+    int moves = movegen(list,player); //generates moves
 
     //if no legal move available then you lose
     if(!moves)
@@ -154,14 +154,15 @@ int Player::nega_vs_player(int player)
             fprintf(stdout, "stdin error");
             exit(0);
         }
-        result = move(coords); //move by passing in coords
+        result = move(coords,player); //move by passing in coords
         display(-player);
         ++move_num;
     }
     else
     {
         int depth = DEPTH;
-        result = negamax(onmove, depth, 0);
+        result = negamax(player, depth, 0);
+//        result = ab_prune(player,ABDEPTH, 0, -10000, 10000); 
     }
     
     //king caught
@@ -186,10 +187,10 @@ int Player::nega_vs_player(int player)
 int Player::rand_vs_nega(int player)
 {
     Move list[70];    //move list of all possible moves
-    onmove = player;  //makes sure side on move is correct
+    //onmove = player;  //makes sure side on move is correct
     int result = 0;   //holds return result of negamax
     int rand_win = 0; //holds return result of random move
-    int moves = movegen(list); //generates all possible moves
+    int moves = movegen(list,player); //generates all possible moves
 
     //if no legal move available then you lose
     if(!moves)
@@ -205,25 +206,25 @@ int Player::rand_vs_nega(int player)
     int max_val = -1;
     int val = -2;
     
-    if(onmove == -1)
+    if(player == -1)
     {
         move_index = 0;
-        result = negamax(onmove, DEPTH, 0);
+        result = negamax(player, DEPTH, 0);
         ++move_num;
     }
     else
     {
         int rando = rand() % moves;
-        rand_win = move(list[rando]);
+        rand_win = move(list[rando],player);
         display(-player);
     }
     
     //king caught
     if(rand_win == 1)
         return -1;
-    if(result >= 10000)
+    if(result == 1)
         return 1;
-    else if(result <= -10000)
+    else if(result == -1)
         return -1;
     else
         val = -rand_vs_nega(- player);
@@ -241,7 +242,7 @@ int Player::rand_vs_nega(int player)
 //Output:
 int Player::abprune_vs_nega(int player)
 {
-    onmove = player;  //makes sure side on move is correct
+    //onmove = player;  //makes sure side on move is correct
     int result = 0;   //holds return result of negamax
     //if move num is going past 40 specify a draw
     if(player == -1)
@@ -253,13 +254,13 @@ int Player::abprune_vs_nega(int player)
     int max_val = -1;
     int val = -2;
     
-    fprintf(stdout, "Player: %d\n", onmove);
+    //fprintf(stdout, "Player: %d\n", onmove);
     
-    if(onmove == -1)
+    if(player == -1)
     {
         move_index = 0;
         string[0] = '\0';
-        ab_prune(onmove, ABDEPTH, 0, -10000, 10000);
+        ab_prune(player, ABDEPTH, 0, -10000, 10000);
         fprintf(stdout, "Move: %s\n", string);
 //        move(string);
 //        display(-player);
@@ -269,7 +270,7 @@ int Player::abprune_vs_nega(int player)
     else
     {
         move_index = 0;
-        result = negamax(onmove, DEPTH, 0);
+        result = negamax(player, DEPTH, 0);
     }
     
     if(result >= 10000)
@@ -290,14 +291,15 @@ int Player::abprune_vs_nega(int player)
 //Task:   Reads in a board from stdin and then evaluates and makes move
 //Input:  Player on move
 //Output: N/A
-void Player::test(int player)
+void Player::test()
 {
+    
     int val = 0;
-    onmove = player;
     read_board();
-    display(player);
+    fprintf(stdout, "Onmove: %d\n", onmove);
     fprintf(stdout, "Negamax: \n\n" );
-    val = negamax(player, DEPTH, 0);
+    val = negamax(onmove, DEPTH, 0);
+    fprintf(stdout, "Onmove: %d\n", onmove);
     fprintf(stdout, "Move Taken: %s\n", string);
     fprintf(stdout, "%d\n", val);
     fprintf(stdout, "Move_index: %d\n", move_index);
@@ -307,14 +309,61 @@ void Player::test(int player)
     
     fprintf(stdout, "\n\nAlpha Beta: \n\n" );
     val = ab_prune(onmove, ABDEPTH, 0, -10000, 10000);
-//    move(string);
-//    display(-player);
+    fprintf(stdout, "Onmove: %d\n", onmove);
     fprintf(stdout, "Move Taken: %s\n", string);
     fprintf(stdout, "%d\n", val);
     fprintf(stdout, "Move_index: %d\n", move_index);
 }
 
 
+//Task:   Pits ab against negamax and AB at same time
+//Input:  Player on side
+//Output: Value indicating which side won 
+int Player::test_ab(int player)
+{
+    int result = 0;   //holds return result of negamax
+
+    //if move num is going past 40 specify a draw
+    if(player == -1)
+    {
+        if(move_num == 41)
+            return 0;
+    }
+
+    int max_val = -1;
+    int val = -2;
+    
+    if(player == -1)
+    {
+        fprintf(stdout, "-----------------------\n");
+        move_index = 0;
+        result = negamax(player, DEPTH, 0);
+        
+        move_index = 0;
+        result = ab_prune(player, ABDEPTH, 0, -10000, 10000);
+        fprintf(stdout, "------------------------\n");
+        //fprintf(stdout, "Nega_val: %d\n", result);
+        ++move_num;
+    }
+    else
+    {
+        move_index = 0;
+        result = ab_prune(player, ABDEPTH, 0, -10000, 10000);
+    }
+    
+    //king caught
+    if(result == 1)
+        return 1;
+    else if(result == -1)
+        return -1;
+    else
+        val = -test_ab(- player);
+    
+    if(val > max_val)
+        max_val = val;
+    
+    return max_val;
+}
 
 //Task:   Connects to imcs server to play a game against a bot/player
 //Input:  Command line values (EX: ./a.out A W13842 Username password)
@@ -479,17 +528,25 @@ int Player::imcs_play(int argc, char ** argv)
             {
                 char * r = net.getnet(nf, (char*)"?");
                 char * q = strtok(r, " ");
-                //int player = onmove;
+                int player = onmove;
                 assert(!strcmp(q, "?"));
 
                 //insert time management here
                 move_index = 0; //reset move index
                 string[0] = '\0';
-                
+
+//                fprintf(stdout, "--------------------------\n");
 //                negamax(player, DEPTH, 0);
-                ab_prune(onmove, ABDEPTH, 0, -10000, 10000);
-//                move(string);
-//                display(-player);
+                
+//                move_index = 0;
+//                string[0] = '\0';
+                ab_prune(player, ABDEPTH, 0, -10000, 10000);
+//                fprintf(stdout, "--------------------------\n");
+
+                //XXX fix onmove setting within movegen within negamax/ab
+                if(player != onmove)
+                    onmove = -onmove; //sets onmove back to correct number
+                
                 ++move_num;
                 
                 net.logmsg((char*)"made move %s\n\n",string);
@@ -504,6 +561,8 @@ int Player::imcs_play(int argc, char ** argv)
                 assert(fgetc(nf) == '!');
                 int ch;
                 char temp[6];
+                int player = onmove;
+//                fprintf(stdout, "Onmove: %d\n", player);
                 temp[0] = '\0';
                 do
                     ch = fgetc(nf);
@@ -516,7 +575,8 @@ int Player::imcs_play(int argc, char ** argv)
                     exit(0);
                 }
                 //net.logmsg((char*)"received move %s\n\n",temp);
-                move(temp); //make move
+                
+                move(temp, -player); //make move
                 continue;
             }
             case '=':

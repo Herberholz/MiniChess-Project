@@ -9,12 +9,13 @@
 #include <ctime>
 #include "netops.h"
 
+#define RANDOMIZE //flag that will set randomization
+#define UNDO_NEGA //flag that will undo negamax move
 
 const int ROW_DIM = 6; //Max row dimensions for board
 const int COL_DIM = 6; //Max col dimensions for board
-const int DEPTH = 4;   //Depth of how far Negamax will search
+const int DEPTH = 6;   //Depth of how far Negamax will search
 const int ABDEPTH = 8; //Depth of how far Alpha Beta will search
-const int TEST = 5;
 
 //Struct holds move info for pieces on board
 struct Move
@@ -43,14 +44,14 @@ class Board
         void display(int);                 //print out board to stream
         void display_moves(Move[],int);    //prints out all moves available for state
         int read_board();                  //read in board from stream
-        int move(Move & loc);              //if piece is legal then makes move and provides new state
-        int move(char coord[]);            //decodes argument, checkes if move legal, then calls move
+        int move(Move & loc,int);          //if piece is legal then makes move and provides new state
+        int move(char coord[],int);        //decodes argument, checkes if move legal, then calls move
         int undo_move(Move loc);           //undos a move that was made
         int move_order(Move[], Move[], int);  //orders move based on heuristic score
         int scan(int,int,int,int,int,int,Move[],int&);  //scans to find pieces
         int symm_scan(int,int,int,int,int,int,Move[],int&);//tries all for rotational symmetries of a given scan
         int move_list(int,int,Move[],int&);//scans to find moves for each piece
-        int movegen(Move list[]);          //generates all legal moves that can be made from given state
+        int movegen(Move list[], int);     //generates all legal moves that can be made from given state
         int state_eval(Move &loc);         //values state of board for player
         int negamax(int,int,int);          //searches tree representation of state space for best move
         int ab_prune(int,int,int,int,int); //uses alpha beta pruning to shrink state space search
@@ -77,7 +78,8 @@ class Player: public Board
         int nega_vs_player(int);    //player  vs negamax   --1vnega
         int rand_vs_nega(int);      //random  vs negamax   --randvnega
         int abprune_vs_nega(int);   //abprune vs negamax   --abvnega
-        void test(int);             //reads in a board state and displays move   --test
+        void test();             //reads in a board state and displays move   --test
+        int test_ab(int);           //ab vs negamax/ab   --testab
         int imcs_play(int, char**); //connects to imcs server to play a game
 
     protected:
