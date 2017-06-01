@@ -32,6 +32,8 @@ int main(int argc, char ** argv)
             choice = 6;
         else if (strcmp(argv[1], "--testab") == 0)
             choice = 7;
+        else if (strcmp(argv[1], "--id") == 0)
+            choice = 8;
     }
 
     //default should be player vs player
@@ -73,6 +75,10 @@ int main(int argc, char ** argv)
             break;
         case 7:
             adversary.test_ab(-1);
+            break;
+        case 8:
+            //adversary.iterative_deep(-1);
+            adversary.test_id();
             break;
         //error state
         default:

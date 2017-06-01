@@ -1,7 +1,7 @@
 #Makefile for Minichess Project
 
 #set up flags
-CFLAGS = -std=c++11 -g -O3 -Wall
+CFLAGS = -std=c++11 -g -Wall
 CC = g++
 
 Minichess: main.cpp board.cpp

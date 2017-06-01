@@ -7,292 +7,185 @@
 kqbnr
 ppppp
 .....
-.P...
-P.PPP
+...P.
+PPP.P
 RNBQK
 
 ? 05:00.000 05:00.000
-made move e5-e4
-
-
 
 
 2 B
 kqbnr
-pppp.
-....p
-.P...
-PBPPP
-RN.QK
+ppp.p
+...p.
+...P.
+PPPKP
+RNBQ.
 
-? 04:59.852 04:59.399
-made move e4-e3
-
-
+? 04:52.965 04:59.959
 
 
 3 B
 kqbnr
-pppp.
+ppp..
+...pP
 .....
-.P..P
-PBP.P
-RN.QK
+PPPKP
+RNBQ.
 
-? 04:59.692 04:57.667
-made move e6-e3
-
-
+? 04:45.964 04:59.917
 
 
 4 B
 kqbn.
-pppp.
+ppp..
+...pr
 .....
-.P..r
-PBPKP
-RN.Q.
+PPP.P
+RNBQK
 
-? 04:59.312 04:51.201
-made move e3-e6
-
-
+? 04:38.962 04:59.875
 
 
 5 B
 kqbnr
-pppp.
+ppp..
+...p.
 .....
-.P...
-PBPKP
-RN..Q
+PPPBP
+RN.QK
 
-? 04:58.941 04:46.900
-made move c5-c4
-
-
+? 04:31.962 04:59.833
 
 
 6 B
 kqbnr
-pp.p.
-..p..
+pp...
+..pp.
 .P...
-PBP.P
-RN.KQ
+P.PBP
+RN.QK
 
-? 04:58.413 04:36.706
-made move c4-b3
-
-
+? 04:24.961 04:59.791
 
 
 7 B
 kqbnr
-pp.p.
-.....
+pp...
+...p.
 .P...
-PB..P
-RN.KQ
+..PBP
+RN.QK
 
-? 04:57.265 04:22.034
-made move d5-d4
-
-
+? 04:17.960 04:59.749
 
 
 8 B
 kqbnr
-pp...
-...p.
+p....
+.p.p.
 .P...
-PB.QP
-RN.K.
+R.PBP
+.N.QK
 
-? 04:55.712 04:11.006
-made move c6-c5
-
-
+? 04:10.959 04:59.707
 
 
 9 B
-kq.nr
-ppb..
-...p.
+kqbn.
+p...r
+.p.p.
 .P...
-PB.QP
-RNK..
+R.PBP
+.NQ.K
 
-? 04:54.446 03:52.435
-made move d4-d3
-
-
+? 04:03.958 04:59.665
 
 
 10 B
-kq.nr
-ppb..
-.....
-.P.Q.
-PB..P
-RNK..
+kqbnr
+p....
+.p.p.
+.PP..
+R..BP
+.NQ.K
 
-? 04:52.636 03:28.703
-made move c5-e3
-
-
+? 03:56.956 04:59.623
 
 
 11 B
-kq.nr
-pp...
-.....
-.P.Qb
-PB..P
-RN.K.
+kqbnr
+p....
+.p...
+.PN..
+R..BP
+..Q.K
 
-? 04:50.511 03:07.458
-made move e3-e4
-
-
+? 03:49.955 04:59.581
 
 
 12 B
-kq.nr
-pp...
-....b
-.PQ..
-PB..P
-RN.K.
+k.bnr
+p....
+.p.q.
+.PN..
+R.B.P
+..Q.K
 
-? 04:47.921 02:38.810
-made move b5-b4
-
-
+? 03:42.954 04:59.539
 
 
 13 B
-kq.nr
+k.bnr
 p....
-.p..b
-.P...
-PB..P
-RNQK.
+.p...
+.Pq..
+R.B.P
+..QK.
 
-? 04:45.925 02:06.111
-made move e4-d4
-
-
+? 03:35.953 04:59.497
 
 
 14 B
-kq.nr
-p....
-.p.b.
-.P...
-PB.QP
-RN.K.
+k..nr
+pb...
+.p...
+.Pq..
+R.B.P
+.Q.K.
 
-? 04:43.819 01:38.019
-made move d4-b2
-
-
+? 03:28.952 04:59.455
 
 
 15 B
-kq.nr
+k..nr
 p....
 .p...
-.P...
-PQ..P
-RN.K.
+.Pq..
+R.B.b
+.QK..
 
-? 04:42.802 01:16.877
-made move d6-b5
-
-
+? 03:28.253 04:59.414
 
 
 16 B
-kq..r
-pn...
+k..nr
+p....
 .p...
-.P...
-PQ.KP
-RN...
+.Pq.b
+R.B..
+.Q.K.
 
-? 04:41.467 01:07.377
-made move b5-d6
-
-
+? 03:28.127 04:59.373
 
 
 17 B
-kq.nr
+k..nr
 p....
 .p...
-.P...
-PQ..P
-RN..K
+.P..b
+..Bq.
+RQ.K.
 
-? 04:40.335 00:59.053
-made move d6-b5
-
-
-
-
-18 B
-kq..r
-pn...
-.p...
-.P...
-PQ.KP
-RN...
-
-? 04:39.004 00:51.155
-made move b5-a3
-
-
-
-
-19 B
-kq..r
-p....
-.p...
-NP...
-PQ.KP
-R....
-
-? 04:37.725 00:40.474
-made move b4-a3
-
-
-
-
-20 B
-kq..r
-p....
-.....
-pPQ..
-P..KP
-R....
-
-? 04:37.058 00:25.145
-made move e6-c6
-
-
-
-
-21 B
-kqr..
-p....
-.....
-pP.Q.
-P..KP
-R....
-
-? 04:36.282 00:09.168
-made move b6-b5
-
-
-= B wins on opponent time
+? 03:28.115 04:59.330
+= B wins

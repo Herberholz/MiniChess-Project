@@ -160,8 +160,7 @@ int Player::nega_vs_player(int player)
     }
     else
     {
-        int depth = DEPTH;
-        result = negamax(player, depth, 0);
+        result = negamax(player, DEPTH, 0);
 //        result = ab_prune(player,ABDEPTH, 0, -10000, 10000); 
     }
     
@@ -261,9 +260,9 @@ int Player::abprune_vs_nega(int player)
         move_index = 0;
         string[0] = '\0';
         ab_prune(player, ABDEPTH, 0, -10000, 10000);
+        if(onmove != player)
+            onmove = player;
         fprintf(stdout, "Move: %s\n", string);
-//        move(string);
-//        display(-player);
 //        result = negamax(onmove,DEPTH,0);
         ++move_num;
     }
@@ -292,14 +291,15 @@ int Player::abprune_vs_nega(int player)
 //Input:  Player on move
 //Output: N/A
 void Player::test()
-{
-    
+{    
     int val = 0;
     read_board();
-    fprintf(stdout, "Onmove: %d\n", onmove);
+    int player = onmove;
+    fprintf(stdout, "Onmove: %d\n", player);
     fprintf(stdout, "Negamax: \n\n" );
-    val = negamax(onmove, DEPTH, 0);
-    fprintf(stdout, "Onmove: %d\n", onmove);
+    //fprintf(stdout, "depth: %d\n", ndepth);
+    val = negamax(player, DEPTH, 0);
+    fprintf(stdout, "Onmove: %d\n", player);
     fprintf(stdout, "Move Taken: %s\n", string);
     fprintf(stdout, "%d\n", val);
     fprintf(stdout, "Move_index: %d\n", move_index);
@@ -308,7 +308,9 @@ void Player::test()
     string[0] = '\0';
     
     fprintf(stdout, "\n\nAlpha Beta: \n\n" );
-    val = ab_prune(onmove, ABDEPTH, 0, -10000, 10000);
+    val = ab_prune(player, ABDEPTH, 0, -10000, 10000);
+    if(player != onmove)
+        onmove = player;
     fprintf(stdout, "Onmove: %d\n", onmove);
     fprintf(stdout, "Move Taken: %s\n", string);
     fprintf(stdout, "%d\n", val);
@@ -364,6 +366,40 @@ int Player::test_ab(int player)
     
     return max_val;
 }
+
+
+//Task:   Reads in a board from stdin and then evaluates and makes move
+//Input:  Player on move
+//Output: N/A
+void Player::test_id()
+{    
+    int val = 0;
+    read_board();
+    int player = onmove;
+    fprintf(stdout, "Onmove: %d\n", player);
+    fprintf(stdout, "AB: \n\n" );
+    //fprintf(stdout, "depth: %d\n", ndepth);
+//    val = negamax(player, DEPTH, 0);
+    val = ab_prune(player, ABDEPTH, 0, -10000, 10000);
+    if(player != onmove)
+        onmove = player;
+    fprintf(stdout, "Onmove: %d\n", player);
+    fprintf(stdout, "Move Taken: %s\n", string);
+    fprintf(stdout, "%d\n", val);
+    fprintf(stdout, "Move_index: %d\n", move_index);
+
+    move_index = 0;
+    string[0] = '\0';
+    
+    fprintf(stdout, "\n\nID AB: \n\n" );
+    val = iterative_deep(player);
+    fprintf(stdout, "Onmove: %d\n", onmove);
+    fprintf(stdout, "Move Taken: %s\n", string);
+    fprintf(stdout, "%d\n", val);
+    fprintf(stdout, "Move_index: %d\n", move_index);
+}
+
+
 
 //Task:   Connects to imcs server to play a game against a bot/player
 //Input:  Command line values (EX: ./a.out A W13842 Username password)
@@ -536,11 +572,10 @@ int Player::imcs_play(int argc, char ** argv)
                 string[0] = '\0';
 
 //                fprintf(stdout, "--------------------------\n");
-//                negamax(player, DEPTH, 0);
+//                negamax(player, ndepth, 0);
                 
-//                move_index = 0;
-//                string[0] = '\0';
-                ab_prune(player, ABDEPTH, 0, -10000, 10000);
+//                ab_prune(player, ABDEPTH, 0, -10000, 10000);
+                iterative_deep(player);
 //                fprintf(stdout, "--------------------------\n");
 
                 //XXX fix onmove setting within movegen within negamax/ab
@@ -549,7 +584,7 @@ int Player::imcs_play(int argc, char ** argv)
                 
                 ++move_num;
                 
-                net.logmsg((char*)"made move %s\n\n",string);
+//                net.logmsg((char*)"made move %s\n\n",string);
                 net.sendcmd(nf, string);
                 //net.logmsg((char*)"SEG");
 

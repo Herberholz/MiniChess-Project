@@ -1,10 +1,13 @@
-1) Build minichess state evaluator
-    make sure to incorporate the use of points for pieces on board
-    have function order moves based off of what is worst for opponent
-    calculate value of each state after each available move and choose worst for opponent
-2) Complete code to connect to server
-3) Randomize move ordering function when dealing with multiple same scores
-4) Randomize which move negamax picks if val equals max_val
+1) Update minichess state evaluator
+2) Randomize move ordering function when dealing with multiple same scores
+3) Randomize which move negamax picks if val equals max_val
 
 Notes: figure out how to evalute which move is best by searching recursively and while
         keeping best move and making it after recursive call.
+
+        When every move leads to a loss then first element will be chosen. Make 
+        sure that it is not a king sacrifice to go for draw.
+
+Issue: When adding -O3 to Makefile to optimize code, it makes some lines of code
+        get repeated which can cause issues. Happened when i added extra variable
+        to Board class. I got a buffer overflow from calling sprintf twice.

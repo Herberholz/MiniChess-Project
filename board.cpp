@@ -31,6 +31,8 @@ Board::Board()
     move_num = 1;     //holds how many moves have gone by
     move_index = 0;   //set to zero to indicate first move is best unless specified
     string[0] = '\0'; //holds the string representation of board coordinates
+    ndepth = 0;       //holds depth of negamax
+    abdepth = 0;      //holds depth of alpha beta
 
     char temp[ROW_DIM][COL_DIM] = {
         {'k','q','b','n','r','\0'},
@@ -62,7 +64,7 @@ void Board::display(int player)
         color = 'W';
     else
     {
-        fprintf(stderr, "Player onmove is not valid\n");
+        fprintf(stderr, "Player is not valid within display\n");
         exit(0);
     }
 
@@ -198,6 +200,8 @@ int Board::move(char coord[],int player)
     fr_row = coord[1] - 54; //subtracts value by ascii value of 6
     to_row = coord[4] - 54; //subtracts value by ascii value of 6
 
+    //fprintf(stdout, "Move: %s\n", coord);
+
     //if not 0 then flip sign
     if(fr_row != 0)
         fr_row = - fr_row;
@@ -208,6 +212,13 @@ int Board::move(char coord[],int player)
         queen = 113;
     else if(player == -1)
         queen = 81;
+    else
+    {
+        fprintf(stderr, "player in move(coords) is invalid");
+        fprintf(stderr, "player: %d\n", player);
+        exit(0);
+    }
+
 
     //capture piece value from origin and make '.'
     piece = board[fr_row][fr_col];
@@ -221,6 +232,7 @@ int Board::move(char coord[],int player)
             win = 1;
     }
     
+    //fprintf(stdout, "player: %d\n", player);
     //if moving to a back row and piece is a pawn then promote to queen
     if((to_row == 0 || to_row == 5) && (piece == 80 || piece == 112))
         board[to_row][to_col] = queen;
@@ -691,7 +703,6 @@ int Board::negamax(int player, int depth, int score)
     {
         return -score; //flip score since it is score from opponent
     }
-    //onmove = player; //be cautious when returning that i am on right player move
 
     Move list[70];  //holds list of moves
     int moves = movegen(list, player); //generates list of moves
@@ -699,7 +710,6 @@ int Board::negamax(int player, int depth, int score)
     //if no legal moves, then return loss
     if(moves == 0)
     {
-        //onmove = - player;
         return -10000;
     }
 
@@ -708,17 +718,13 @@ int Board::negamax(int player, int depth, int score)
     
     move(ordered[0], player); //make move on board
     int max_val = - negamax(- player, depth - 1, ordered[0].score);
-    //onmove = player; //make sure to set onmove to appropriate player
     undo_move(ordered[0]);//undo move made
     
     for(int i = 1; i < moves; ++i) //starts at element 1 due to move 0 being taken
     {
-        //onmove = player; //sets to appropriate player on move
-
         move(ordered[i], player); //makes move
         int val = - negamax(- player, depth - 1, ordered[i].score);
 
-    //    onmove = player; //sets to appropriate player on move
         undo_move(ordered[i]); //undo move
 
         if(val > max_val)
@@ -734,11 +740,10 @@ int Board::negamax(int player, int depth, int score)
     //before last return make selected move, display it, and then store in string
     if(depth == DEPTH)
     {
-  //          display_moves(ordered, moves);
-
             onmove = player;
             move(ordered[move_index], player);
             display(-player);
+
             sprintf(string, "%c%d-%c%d", ordered[move_index].f_col_coord,
                                          ordered[move_index].f_row_coord,
                                          ordered[move_index].t_col_coord,
@@ -751,8 +756,6 @@ int Board::negamax(int player, int depth, int score)
 //                return 1;
 //            else if(ordered[move_index].score == -10000)
 //                return -1;
-    
-//            fprintf(stdout, "Max Val: %d\n" , max_val);
     }
     return max_val;
 }
@@ -772,15 +775,12 @@ int Board::ab_prune(int player, int depth, int score, int alpha, int beta)
         return -score; //flip score since it is score from opponent
     }
  
-  //  onmove = player; //be cautious when returning that i am on right player move
-
     Move list[70];  //holds list of moves
     int moves = movegen(list, player); //generates list of moves
    
     //if no legal moves, then return loss
     if(moves == 0)
     {
-        //onmove = - player;
         return -10000;
     }
 
@@ -790,7 +790,6 @@ int Board::ab_prune(int player, int depth, int score, int alpha, int beta)
     move(ordered[0], player); //make move on board
     int max_val = - ab_prune(- player, depth - 1, ordered[0].score, - beta, - alpha);
 
-    //onmove = player; //make sure to set onmove to appropriate player
     undo_move(ordered[0]);//undo move made
 
     if(max_val >= beta)
@@ -799,9 +798,187 @@ int Board::ab_prune(int player, int depth, int score, int alpha, int beta)
         if(depth == ABDEPTH)
         {
 //            fprintf(stdout, "BEGINNING\n");
-            //onmove = player;
             move(ordered[0], player);
             display(-player);
+            sprintf(string, "%c%d-%c%d", ordered[0].f_col_coord,
+                                         ordered[0].f_row_coord,
+                                         ordered[0].t_col_coord,
+                                         ordered[0].t_row_coord);
+
+            #ifdef UNDO_AB
+            undo_move(ordered[move_index]);
+            #endif
+
+        }
+        
+        return max_val;
+    }
+
+    if(max_val > alpha)
+        alpha = max_val;
+
+    for(int i = 1; i < moves; ++i) //starts at element 1 due to move 0 being taken
+    {
+        move(ordered[i], player); //makes move
+        int val = - ab_prune(- player, depth - 1, ordered[i].score, - beta, - alpha);
+        undo_move(ordered[i]); //undo move
+
+        if(val >= beta)
+        {
+            if(depth == ABDEPTH) //keep track of which move leads to best path
+            {               
+//                fprintf(stdout, "Made itttttttttttt\n");
+                move_index = i;
+                move(ordered[move_index], player);
+                display(-player);
+                sprintf(string, "%c%d-%c%d", ordered[move_index].f_col_coord,
+                                             ordered[move_index].f_row_coord,
+                                             ordered[move_index].t_col_coord,
+                                             ordered[move_index].t_row_coord);
+                #ifdef UNDO_AB
+                undo_move(ordered[move_index]);
+                #endif
+
+            }
+            return val;
+        }
+
+        if(val > max_val)
+        {
+            max_val = val;
+            if(depth == ABDEPTH) //keep track of which move leads to best path
+                move_index = i;
+        }
+        if(val > alpha)
+            alpha = val;
+    }
+
+    //before last return make selected move, display it, and then store in string
+    if(depth == ABDEPTH)
+    {
+//        fprintf(stdout, "EXIT\n");
+        move(ordered[move_index], player);
+        display(-player);
+
+        sprintf(string, "%c%d-%c%d", ordered[move_index].f_col_coord,
+                                     ordered[move_index].f_row_coord,
+                                     ordered[move_index].t_col_coord,
+                                     ordered[move_index].t_row_coord);
+
+        #ifdef UNDO_AB
+        undo_move(ordered[move_index]);
+        #endif
+
+    }
+    return max_val;
+}
+
+
+//Task:   Recursively goes through possible moves and finds best possible move to make
+//Input:  Takes player on move, depth of search, and score of board state from move
+//Output: Returns the best score found from search
+int Board::id_negamax(int player, int depth, int score)
+{
+    //Base case that searches for depth of 0 or score to end game
+    //score passed from opponent perspective so i negate the score when returning it
+    if(depth <= 0 || score >= 10000)
+    {
+        return -score; //flip score since it is score from opponent
+    }
+
+    Move list[70];  //holds list of moves
+    int moves = movegen(list, player); //generates list of moves
+   
+    //if no legal moves, then return loss
+    if(moves == 0)
+    {
+        return -10000;
+    }
+
+    Move ordered[moves]; //holds list of ordered moves
+    move_order(list, ordered, moves); //orders moves
+    
+    move(ordered[0], player); //make move on board
+    int max_val = - id_negamax(- player, depth - 1, ordered[0].score);
+    undo_move(ordered[0]);//undo move made
+    
+    for(int i = 1; i < moves; ++i) //starts at element 1 due to move 0 being taken
+    {
+        gettimeofday(&time_end, NULL);
+        timersub(&time_end, &time_start, &time_result);
+        if(time_result.tv_sec >= TIME)
+            return max_val;
+
+        move(ordered[i], player); //makes move
+        int val = - id_negamax(- player, depth - 1, ordered[i].score);
+
+        undo_move(ordered[i]); //undo move
+
+        if(val > max_val)
+        {
+            max_val = val;
+            if(depth == ndepth && time_result.tv_sec < TIME) //keep track of which move leads to best path
+            {               
+                move_index = i;
+            }
+        }
+    }
+
+    //before last return make selected move, display it, and then store in string
+    if(depth == ndepth && time_result.tv_sec < TIME)
+    {
+            onmove = player;
+            sprintf(string, "%c%d-%c%d", ordered[move_index].f_col_coord,
+                                         ordered[move_index].f_row_coord,
+                                         ordered[move_index].t_col_coord,
+                                         ordered[move_index].t_row_coord);
+    }
+    return max_val;
+}
+
+
+
+//Task:   Will search through state space like negamax but prune out branches of 
+//          the tree to speed up the search, thus allowing for deeper searches
+//Input:  Player on move, Depth to search, score of state, alpha and beta value
+//Output: The value of the best state evaluation found
+int Board::id_ab_prune(int player, int depth, int score, int alpha, int beta)
+{
+    //Base case that searches for depth of 0 or score to end game
+    //score passed from opponent perspective so i negate the score when returning it
+    if(depth <= 0 || score >= 10000)
+    {
+        return -score; //flip score since it is score from opponent
+    }
+
+    Move list[70];  //holds list of moves
+    int moves = movegen(list, player); //generates list of moves
+   
+    //if no legal moves, then return loss
+    if(moves == 0)
+    {
+        return -10000;
+    }
+
+    Move ordered[moves]; //holds list of ordered moves
+    move_order(list, ordered, moves); //orders moves
+    
+    move(ordered[0], player); //make move on board
+    int max_val = - id_ab_prune(- player, depth - 1, ordered[0].score, - beta, - alpha);
+
+    undo_move(ordered[0]);//undo move made
+
+        gettimeofday(&time_end, NULL);
+        timersub(&time_end, &time_start, &time_result);
+        if(time_result.tv_sec >= TIME)
+            return max_val;
+
+    if(max_val >= beta)
+    {
+
+        if(depth == abdepth && time_result.tv_sec < TIME)
+        {
+//            fprintf(stdout, "BEGINNING\n");
             sprintf(string, "%c%d-%c%d", ordered[0].f_col_coord,
                                          ordered[0].f_row_coord,
                                          ordered[0].t_col_coord,
@@ -817,26 +994,22 @@ int Board::ab_prune(int player, int depth, int score, int alpha, int beta)
 
     for(int i = 1; i < moves; ++i) //starts at element 1 due to move 0 being taken
     {
-        //onmove = player; //sets to appropriate player on move
+        gettimeofday(&time_end, NULL);
+        timersub(&time_end, &time_start, &time_result);
+        if(time_result.tv_sec >= TIME)
+            return max_val;
 
         move(ordered[i], player); //makes move
-        int val = - ab_prune(- player, depth - 1, ordered[i].score, - beta, - alpha);
-    
-        //onmove = player; //sets to appropriate player on move
+        int val = - id_ab_prune(- player, depth - 1, ordered[i].score, - beta, - alpha);
+
         undo_move(ordered[i]); //undo move
 
         if(val >= beta)
         {
-            if(depth == ABDEPTH) //keep track of which move leads to best path
+            if(depth == abdepth && time_result.tv_sec < TIME) //keep track of which move leads to best path
             {               
 //                fprintf(stdout, "Made itttttttttttt\n");
-//                fprintf(stdout, "%d\n", val);
-//                fprintf(stdout, "%d\n", beta);
-//                display_moves(ordered, moves);
-                //onmove = player;
                 move_index = i;
-                move(ordered[move_index], player);
-                display(-player);
                 sprintf(string, "%c%d-%c%d", ordered[move_index].f_col_coord,
                                              ordered[move_index].f_row_coord,
                                              ordered[move_index].t_col_coord,
@@ -848,23 +1021,17 @@ int Board::ab_prune(int player, int depth, int score, int alpha, int beta)
         if(val > max_val)
         {
             max_val = val;
-            if(depth == ABDEPTH) //keep track of which move leads to best path
-            {               
+            if(depth == abdepth && time_result.tv_sec < TIME) //keep track of which move leads to best path
                 move_index = i;
-            }
         }
         if(val > alpha)
             alpha = val;
     }
 
     //before last return make selected move, display it, and then store in string
-    if(depth == ABDEPTH)
+    if(depth == abdepth && time_result.tv_sec < TIME)
     {
 //        fprintf(stdout, "EXIT\n");
-//        display_moves(ordered, moves);
-        //onmove = player;
-        move(ordered[move_index], player);
-        display(-player);
         sprintf(string, "%c%d-%c%d", ordered[move_index].f_col_coord,
                                      ordered[move_index].f_row_coord,
                                      ordered[move_index].t_col_coord,
@@ -872,4 +1039,57 @@ int Board::ab_prune(int player, int depth, int score, int alpha, int beta)
 
     }
     return max_val;
+}
+
+
+
+//Task:
+//Input:
+//Output:
+int Board::iterative_deep(int player)
+{
+    //save move coords from each depth search and make move once out of for loop
+    //within negamax check time, if over then return and use last move
+    //search for 7 seconds
+    int value = 0; 
+    ndepth = 1;
+    abdepth = 1;
+    gettimeofday(&time_start, NULL);
+    
+//    value = id_negamax(player, ndepth, 0);
+    value = id_ab_prune(player, abdepth, 0, -10000, 10000);
+    if(onmove != player)
+        onmove = player;
+
+    for(int i = 2; (i + move_num) < 42; i+=2)
+    {
+        ndepth = i;
+        abdepth = i;
+        move_index = 0;
+//        value = id_negamax(player, ndepth, 0);
+
+        value = id_ab_prune(player, abdepth, 0, -10000, 10000);
+        if(onmove != player)
+            onmove = player;
+        
+        gettimeofday(&time_end, NULL);
+        timersub(&time_end, &time_start, &time_result);
+        
+//        fprintf(stdout, "%d seconds %d microseconds\n", (int)time_result.tv_sec, (int)time_result.tv_usec);
+        //if time passes 7 seconds then break loop
+        if(time_result.tv_sec >= TIME)
+            break;
+        if(value == -10000)
+            break;
+        if(value == 10000)
+            break;
+//        if(i == ABDEPTH)
+//            break;
+    }
+
+    fprintf(stdout, "Depth: %d\n", ndepth);
+    //fprintf(stdout, "Depth: %d\n", abdepth);
+    move(string, player);
+    display(-player);
+    return value;
 }

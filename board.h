@@ -7,15 +7,18 @@
 #include <cstring>
 #include <cctype>
 #include <ctime>
+#include <sys/time.h>
 #include "netops.h"
 
 #define RANDOMIZE //flag that will set randomization
 #define UNDO_NEGA //flag that will undo negamax move
+#define UNDO_AB
 
 const int ROW_DIM = 6; //Max row dimensions for board
 const int COL_DIM = 6; //Max col dimensions for board
 const int DEPTH = 6;   //Depth of how far Negamax will search
 const int ABDEPTH = 8; //Depth of how far Alpha Beta will search
+const int TIME = 7;    //Length of time ID searchs
 
 //Struct holds move info for pieces on board
 struct Move
@@ -55,13 +58,19 @@ class Board
         int state_eval(Move &loc);         //values state of board for player
         int negamax(int,int,int);          //searches tree representation of state space for best move
         int ab_prune(int,int,int,int,int); //uses alpha beta pruning to shrink state space search
-    
+        int id_negamax(int,int,int);       //negamax but with iterative deepening
+        int id_ab_prune(int,int,int,int,int);//ab prune but with iterative deepening
+        int iterative_deep(int);           //increases depth of search as long as time allows
+
     protected:
         char board[ROW_DIM][COL_DIM]; //holds minichess board 
         int onmove;                   //signifies which player is on move
         int move_num;                 //signifies what the current move is 
         int move_index;               //holds index of which move to make based off negamax/ab prune
         char string[5];               //holds the string representation of move that is passed to server
+        int ndepth;                   //Depth of how far Negamax will search
+        int abdepth;                  //Depth of how far Alpha Beta will search
+        struct timeval time_start, time_end, time_result; //holds time values
 };
 
 
@@ -80,6 +89,7 @@ class Player: public Board
         int abprune_vs_nega(int);   //abprune vs negamax   --abvnega
         void test();             //reads in a board state and displays move   --test
         int test_ab(int);           //ab vs negamax/ab   --testab
+        void test_id();           //id_nega vs nega    --id
         int imcs_play(int, char**); //connects to imcs server to play a game
 
     protected:
