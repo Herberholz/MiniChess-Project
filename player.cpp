@@ -21,7 +21,6 @@ Player::Player() {}
 int Player::random_game(int player)
 {
     Move list[70];            //list that has size of all possible moves
-    //onmove = player;           //set onmove to appropriate player
     int moves = movegen(list,player); //generate moves
 
     //if no legal move available then you lose
@@ -66,7 +65,6 @@ int Player::rand_vs_player(int player)
 {
     Move list[70];   //holds list of moves that is the size of all available moves
     int result = 0;  //holds value that move function returns
-    //onmove = player; //sets onmove to current player
     int moves = movegen(list,player); //generates moves
 
     //if no legal move available then you lose
@@ -126,7 +124,6 @@ int Player::rand_vs_player(int player)
 int Player::nega_vs_player(int player)
 {
     Move list[70];    //move list with size that will allow all possible moves
-    //onmove = player;  //sets onmove to current player
     int result = 0;   //holds result that negamax returns
     int moves = movegen(list,player); //generates moves
 
@@ -186,7 +183,6 @@ int Player::nega_vs_player(int player)
 int Player::rand_vs_nega(int player)
 {
     Move list[70];    //move list of all possible moves
-    //onmove = player;  //makes sure side on move is correct
     int result = 0;   //holds return result of negamax
     int rand_win = 0; //holds return result of random move
     int moves = movegen(list,player); //generates all possible moves
@@ -241,8 +237,8 @@ int Player::rand_vs_nega(int player)
 //Output:
 int Player::abprune_vs_nega(int player)
 {
-    //onmove = player;  //makes sure side on move is correct
     int result = 0;   //holds return result of negamax
+    
     //if move num is going past 40 specify a draw
     if(player == -1)
     {
@@ -253,8 +249,6 @@ int Player::abprune_vs_nega(int player)
     int max_val = -1;
     int val = -2;
     
-    //fprintf(stdout, "Player: %d\n", onmove);
-    
     if(player == -1)
     {
         move_index = 0;
@@ -263,7 +257,6 @@ int Player::abprune_vs_nega(int player)
         if(onmove != player)
             onmove = player;
         fprintf(stdout, "Move: %s\n", string);
-//        result = negamax(onmove,DEPTH,0);
         ++move_num;
     }
     else
@@ -376,13 +369,14 @@ void Player::test_id()
     int val = 0;
     read_board();
     int player = onmove;
+
     fprintf(stdout, "Onmove: %d\n", player);
     fprintf(stdout, "AB: \n\n" );
-    //fprintf(stdout, "depth: %d\n", ndepth);
-//    val = negamax(player, DEPTH, 0);
     val = ab_prune(player, ABDEPTH, 0, -10000, 10000);
+
     if(player != onmove)
         onmove = player;
+    
     fprintf(stdout, "Onmove: %d\n", player);
     fprintf(stdout, "Move Taken: %s\n", string);
     fprintf(stdout, "%d\n", val);
@@ -538,9 +532,6 @@ int Player::imcs_play(int argc, char ** argv)
     //------------------------------------------------------------
     //can start implementing code to manipulate board below
 
-    //need to pull from nf
-    //cover cases for ?, !, =, X, 
-    
     while(1)
     {
         int ch = fgetc(nf);
@@ -550,13 +541,6 @@ int Player::imcs_play(int argc, char ** argv)
         {
             exit(0);
         }
-//        net.logmsg((char*)"ch= %c\n", ch);
-        
-//        if(isdigit(ch))
-//        {
-            //readstate/eval
-//            continue;
-//        }
 
         switch(ch)
         {
@@ -571,24 +555,14 @@ int Player::imcs_play(int argc, char ** argv)
                 move_index = 0; //reset move index
                 string[0] = '\0';
 
-//                fprintf(stdout, "--------------------------\n");
-//                negamax(player, ndepth, 0);
-                
-//                ab_prune(player, ABDEPTH, 0, -10000, 10000);
                 iterative_deep(player);
-//                fprintf(stdout, "--------------------------\n");
 
                 //XXX fix onmove setting within movegen within negamax/ab
                 if(player != onmove)
                     onmove = -onmove; //sets onmove back to correct number
                 
                 ++move_num;
-                
-//                net.logmsg((char*)"made move %s\n\n",string);
                 net.sendcmd(nf, string);
-                //net.logmsg((char*)"SEG");
-
-                //if ponder then run negamax again
                 continue;
             }
             case '!':
@@ -597,11 +571,12 @@ int Player::imcs_play(int argc, char ** argv)
                 int ch;
                 char temp[6];
                 int player = onmove;
-//                fprintf(stdout, "Onmove: %d\n", player);
                 temp[0] = '\0';
+
                 do
                     ch = fgetc(nf);
                 while(isspace(ch));
+                
                 ungetc(ch, nf);
                 int issue = fscanf(nf, "%s", temp);
                 if(!issue)

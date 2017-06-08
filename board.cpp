@@ -24,6 +24,34 @@ Move::Move()
 
 
 
+//Constructor for piece representation struct
+Piece_rep::Piece_rep()
+{
+    king = 0;
+    queen = 0;
+    bishop = 0;
+    knight = 0;
+    rook = 0;
+    pawn = 0;
+};
+
+
+
+//Constructor for piece flag values
+Piece_flag::Piece_flag()
+{
+    w_queen = 0;  
+    b_queen = 0; 
+    w_rook = 0;   
+    b_rook = 0;  
+    w_bishop = 0;
+    b_bishop = 0;
+    w_knight = 0; 
+    b_knight = 0;
+};
+
+
+
 //Constructor
 Board::Board()
 {
@@ -199,8 +227,6 @@ int Board::move(char coord[],int player)
     to_col = coord[3] - 97; //a is 97, subtract that to get the col number
     fr_row = coord[1] - 54; //subtracts value by ascii value of 6
     to_row = coord[4] - 54; //subtracts value by ascii value of 6
-
-    //fprintf(stdout, "Move: %s\n", coord);
 
     //if not 0 then flip sign
     if(fr_row != 0)
@@ -440,51 +466,16 @@ int Board::symm_scan(int x,int y,int dx,int dy,int stop_short,int capture,Move l
 //Output: Returns Move list using pass by reference
 int Board::move_list(int x, int y, Move list[], int & index)
 {
-    //XXX Move this beginning bit out of the double for loop to save time
-    //store in struct? piece_rep
-    //-----------------------------------------------------------------------
     int stop_short = 0; //indicates whether to stop or not
     int capture = 1;    //default true, then false or only
     int direction = 1;  //determines where to move pawn on y axis
     int piece = 0;      //holds piece at board location
-    int king = 0;       //rest of values are ascii values for pieces
-    int queen = 0;
-    int bishop = 0;
-    int knight = 0;
-    int rook = 0;
-    int pawn = 0;
-
-    //set piece values based on who is on move
-    if(onmove == 1)
-    {
-        king = 107;
-        queen = 113;
-        bishop = 98;
-        knight = 110;
-        rook = 114;
-        pawn = 112;
-    }
-    else if(onmove == -1)
-    {
-        king = 75;
-        queen = 81;
-        bishop = 66;
-        knight = 78;
-        rook = 82;
-        pawn = 80;
-    }
-    else
-    {
-        fprintf(stderr, "Onmove not recognized");
-        exit(0);
-    }
-    //------------------------------------------------------------------------
-
+    
     piece = board[y][x];
 
-    if(piece == king || piece == queen)
+    if(piece == piece_val.king || piece == piece_val.queen)
     {
-        if(piece == king)
+        if(piece == piece_val.king)
             stop_short = 1;
 
         symm_scan(x,y,0,1,stop_short,capture,list,index);
@@ -492,16 +483,16 @@ int Board::move_list(int x, int y, Move list[], int & index)
         return 1;
     }
     //rook can capture vert/horiz but not bishop
-    else if(piece == bishop || piece == rook)
+    else if(piece == piece_val.bishop || piece == piece_val.rook)
     {
-        if(piece == bishop)
+        if(piece == piece_val.bishop)
         {
             stop_short = 1;
             capture = 0;
         }
         symm_scan(x,y,0,1,stop_short,capture,list,index);
 
-        if(piece == bishop)
+        if(piece == piece_val.bishop)
         {
             stop_short = 0;
             capture = 1;
@@ -509,13 +500,13 @@ int Board::move_list(int x, int y, Move list[], int & index)
         }
         return 1;
     }
-    else if(piece == knight)
+    else if(piece == piece_val.knight)
     {
         symm_scan(x,y,1,2,true,capture,list,index);
         symm_scan(x,y,-1,2,true,capture,list,index);
         return 1;
     }
-    else if(piece == pawn)
+    else if(piece == piece_val.pawn)
     {
         direction = -1;
         if(onmove == 1)
@@ -555,11 +546,23 @@ int Board::movegen(Move list[], int player)
     {
         lower_bound = 97;
         upper_bound = 115;
+        piece_val.king = 107;
+        piece_val.queen = 113;
+        piece_val.bishop = 98;
+        piece_val.knight = 110;
+        piece_val.rook = 114;
+        piece_val.pawn = 112;
     }
     else if(onmove == -1)
     {
         lower_bound = 65;
         upper_bound = 83;
+        piece_val.king = 75;
+        piece_val.queen = 81;
+        piece_val.bishop = 66;
+        piece_val.knight = 78;
+        piece_val.rook = 82;
+        piece_val.pawn = 80;
     }
     else
     {
@@ -598,13 +601,15 @@ int Board::state_eval(Move &loc)
     //make move, eval state, and then undo move made. Return score/add score to struct
     //-make sure to increase points for pawn that has free pass to promotion
     
-    int result = 0; //holds return value from move function
-    int piece = 0;  //holds piece value from board
-    int player = 0; //holds flag to indicate which color the piece is
-    int score1 = 0; //holds score for player 1
-    int score2 = 0; //holds score for player 2
-    int sum = 0;    //holds difference between scores
-    
+    int result = 0;      //holds return value from move function
+    int piece = 0;       //holds piece value from board
+    int player = 0;      //holds flag to indicate which color the piece is
+    int score1 = 0;      //holds score for player 1
+    int score2 = 0;      //holds score for player 2
+    int sum = 0;         //holds difference between scores
+    Piece_flag flag;     //struct holding indicators of if piece is present
+//    int r = -1;          //holds new row value
+
     result = move(loc,onmove); //returns if king is taken
 
     //if king captured from move then set score and return
@@ -623,27 +628,57 @@ int Board::state_eval(Move &loc)
             piece = board[i][j];
             
             if(piece > 97 && piece < 115)
+            {
                 player = 1; //Black
+//                r = i + 1;
+            }
             else if(piece > 65 && piece < 83)
+            {
                 player = 2; //White
-            
+//                r = i - 1;
+            }
             //king is not taken into account for score evaluation
             if(piece != 46)
             {
                 if(player == 1)
                 {
                     if(piece == 107)
+                    {
                         score1 = score1; //dont change for king
+  //                      if(move_num < 11)
+  //                          score1 += eval_king(i,j,r); //if protected then add points
+                    }
                     else if(piece == 98)//bishop
+                    {
                         score1 += 300;
+                        flag.b_bishop = 1;
+                        if(i != 0 && j != 2)
+                            score1 += 50;
+                    }
                     else if(piece == 110)//knight
+                    {
                         score1 += 300;
+                        flag.b_knight = 1;
+                        if(i != 0 && j != 3)
+                            score1 += 50;
+                    }
                     else if(piece == 112)//pawn
+                    {
                         score1 += 100;
+                        score1 += eval_pawn(i,j);
+                    }
                     else if(piece == 113)//queen
+                    {
                         score1 += 900;
+                        flag.b_queen = 1; //says back has its queen
+                    }
                     else if(piece == 114)//rook
+                    {
                         score1 += 500;
+                        flag.b_rook = 1;
+                        if(i != 0 && j != 4)
+                            score1 += 50;
+                    }
                     else
                     {
                         fprintf(stderr, "unknown piece in eval\n");
@@ -653,17 +688,43 @@ int Board::state_eval(Move &loc)
                 else if(player == 2)
                 {
                     if(piece == 75)
+                    {
                         score2 = score2; //dont change for king
+ //                       if(move_num < 11)
+ //                           score2 += eval_king(i,j,r);
+                    }
                     else if(piece == 66)//bishop
+                    {
                         score2 += 300;
+                        flag.w_bishop = 1;
+                        if(i != 5 && j != 2)
+                            score2 += 50;
+
+                    }
                     else if(piece == 78)//knight
+                    {
                         score2 += 300;
+                        flag.w_knight = 1;
+                        if(i != 5 && j != 1)
+                            score2 += 50;
+                    }
                     else if(piece == 80)//pawn
+                    {
                         score2 += 100;
+                        score2 += eval_pawn(i,j);
+                    }
                     else if(piece == 81)//queen
+                    {
                         score2 += 900;
+                        flag.w_queen = 1; //says white has queen
+                    }
                     else if(piece == 82)//rook
+                    {
                         score2 += 500;
+                        flag.w_rook = 1;
+                        if(i != 5 && j != 0)
+                            score2 += 50;
+                    }
                     else
                     {
                         fprintf(stderr, "unknown piece in eval\n");
@@ -679,15 +740,255 @@ int Board::state_eval(Move &loc)
         }
     }
 
+    
     //take difference based on who is on move
     if(onmove == 1)
+    {
+        score2 += avoid_sacrifice(loc.piece_capture, flag);
         sum = score1 - score2;
+    }
     else if(onmove == -1)
+    {
+        score1 += avoid_sacrifice(loc.piece_capture, flag);
         sum = score2 - score1;
+    }
+
     loc.score = sum;
     undo_move(loc);
 
     return 0;
+}
+
+
+
+//Task:   Evaluates the king position and gives extra points if it is protected
+//Input:  Position on board and which row to search
+//Output: Score for king positioning
+int Board::eval_king(int i, int j, int r)
+{
+    int score = 0;
+    int points = 200;
+    int lbound = 0;
+    int ubound = 0;
+
+    if(onmove == 1)
+    {
+        lbound = 97;
+        ubound = 115;
+    }
+    else if(onmove == -1)
+    {
+        lbound = 65;
+        ubound = 85;
+    }
+    else
+    {
+        fprintf(stderr, "error in king eval");
+        exit(0);
+    }
+
+    //makes sure black king has protection in front
+    if(i != 5)
+    {
+        if(board[r][j] > lbound && board[r][j] < ubound)
+            score += points;
+        if(j != 0)
+        {
+            if(board[r][j-1] > lbound && board[r][j-1] < ubound)
+                score += points;
+        }
+        if(j != 4)
+        {
+            if(board[r][j+1] > lbound && board[r][j+1] < ubound)
+                score += points;
+        }
+    }
+    //makes sure white king has protection in front
+    else if(i == 5)
+    {
+
+        if(board[r][j] > lbound && board[r][j] < ubound)
+        {
+            score += points;
+        }
+        
+        if(j != 0)
+        {
+            if(board[r][j-1] > lbound && board[r][j-1] < ubound)
+                score += points;
+        }
+        if(j != 4)
+        {
+            if(board[r][j+1] > lbound && board[i][j+1] < ubound)
+                score += points;
+        }
+    }
+
+    //if on home square then add 50 points
+    if(i == 5 || i == 0)
+        score += 50;
+
+    return score;
+}
+
+
+
+//Task:   Evaluates pawns in order to score based off positioning and structure
+//Input:  Position on board
+//Output: Score for pawn
+int Board::eval_pawn(int i, int j)
+{
+    int score = 0;
+
+    //----Need to test out pawn structure eval more----
+    //implementing this slows down program so i don't search as deep
+/*
+    //Points for pawn structure
+    if(j != 0)
+    {
+        if(board[i+1][j-1] == piece_val.pawn)
+            score += 10;
+        if(board[i][j-1] == piece_val.pawn) //connected pawn
+            score += 15;
+        if(board[i-1][j-1] == piece_val.pawn)
+            score += 10;
+    }
+    if(j != 4)
+    {
+        if(board[i+1][j+1] == piece_val.pawn)
+            score += 10;
+        if(board[i][j+1] == piece_val.pawn) //connected pawn
+            score += 15;
+        if(board[i-1][j+1] == piece_val.pawn)
+            score += 10;
+    }
+
+    if(board[i+1][j] == piece_val.pawn) //doubled pawn
+        score -= 15;
+    if(board[i-1][j] == piece_val.pawn) //doubled pawn
+        score -= 15;
+
+    //isolated pawn 
+    if(score <= 0)
+        score = -15;
+*/
+
+    //gives extra points for being close to promotion
+    if(onmove == -1)
+    {
+        if(i == 1)
+        {
+            if(board[i-1][j] == 46)
+                score += 300;
+            else
+                score += 150;
+        }
+        else if(i == 2)
+        {
+            if(board[i-1][j] == 46 && board[i-2][j] == 46)
+                score += 200;
+            else 
+                score += 100;
+        }
+    }
+    else if(onmove == 1)
+    {
+        if(i == 4)
+        {
+            if(board[i+1][j] == 46)
+                score += 300;
+            else 
+                score += 150;
+        }
+        else if(i == 3)
+        {
+            if(board[i+1][j] == 46 && board[i+2][j] == 46)
+                score += 200;
+            else
+                score += 100;
+        }
+    }
+    //in opening game keep pawns protecting king
+    if(move_num < 10)
+    {
+        if(onmove == -1)
+        {
+            if(i == 4 && j == 4)
+            {
+                if(board[i][j] == piece_val.pawn)
+                    score += 50;
+                if(board[i][j-1] == piece_val.pawn)
+                    score += 50;
+            }
+        }
+        if(onmove == 1)
+        {
+            if(i == 1 && j == 0)
+            {
+                if(board[i][j] == piece_val.pawn)
+                    score += 50;
+                if(board[i][j+1] == piece_val.pawn)
+                    score += 50;
+            }
+        }
+    }
+
+    return score;
+}
+
+
+
+//Task:   If a piece was captured it makes sure that if piece is captured that 
+//          onmove does not have. give negative points to avoid possible sacrifice
+//Input:  Piece that was captured and struct of piece flags
+//Output: The score that was calculated
+int Board::avoid_sacrifice(int capture, Piece_flag flag)
+{
+    int score = 0;
+
+    if(capture == 0)
+        return 0;
+
+    //if capture piece is a queen and other player queen flag not recognized
+    //then subtract points for possible queen sacrifice
+    if(capture == 113 || capture == 81)
+    {
+        if(onmove == 1 && flag.b_queen == 0)
+            score = -200;
+        if(onmove == -1 && flag.w_queen == 0)
+            score = -200;
+    }
+    //if capture piece is knight and onmove has no knight subtract points for 
+    //knight sacrifice
+    else if(capture == 110 || capture == 78)
+    {
+        if(onmove == 1 && flag.b_knight == 0)
+            score = -200;
+        if(onmove == -1 && flag.w_knight == 0)
+            score = -200;
+    }
+    
+    //if capture piece is bishop and onmove has no bishop subtract points for 
+    //bishop sacrifice
+    else if(capture == 98 || capture == 66)
+    {
+        if(onmove == 1 && flag.b_bishop == 0)
+            score = -200;
+        if(onmove == -1 && flag.w_bishop == 0)
+            score = -200;
+    }
+    
+    //if capture piece is a rook and onmove has no rook subtract points 
+    else if(capture == 114 || capture == 82)
+    {
+        if(onmove == 1 && flag.b_rook == 0)
+            score = -200;
+        if(onmove == -1 && flag.w_rook == 0)
+            score = -200;
+    }
+
+
+    return score;
 }
 
 
@@ -744,18 +1045,13 @@ int Board::negamax(int player, int depth, int score)
             move(ordered[move_index], player);
             display(-player);
 
-            sprintf(string, "%c%d-%c%d", ordered[move_index].f_col_coord,
+            snprintf(string, 6,"%c%d-%c%d", ordered[move_index].f_col_coord,
                                          ordered[move_index].f_row_coord,
                                          ordered[move_index].t_col_coord,
                                          ordered[move_index].t_row_coord);
-    //------------------------------------------------
             #ifdef UNDO_NEGA
             undo_move(ordered[move_index]);
             #endif
-//            if(ordered[move_index].score == 10000)
-//                return 1;
-//            else if(ordered[move_index].score == -10000)
-//                return -1;
     }
     return max_val;
 }
@@ -800,7 +1096,7 @@ int Board::ab_prune(int player, int depth, int score, int alpha, int beta)
 //            fprintf(stdout, "BEGINNING\n");
             move(ordered[0], player);
             display(-player);
-            sprintf(string, "%c%d-%c%d", ordered[0].f_col_coord,
+            snprintf(string, 6,"%c%d-%c%d", ordered[0].f_col_coord,
                                          ordered[0].f_row_coord,
                                          ordered[0].t_col_coord,
                                          ordered[0].t_row_coord);
@@ -831,7 +1127,7 @@ int Board::ab_prune(int player, int depth, int score, int alpha, int beta)
                 move_index = i;
                 move(ordered[move_index], player);
                 display(-player);
-                sprintf(string, "%c%d-%c%d", ordered[move_index].f_col_coord,
+                snprintf(string, 6,"%c%d-%c%d", ordered[move_index].f_col_coord,
                                              ordered[move_index].f_row_coord,
                                              ordered[move_index].t_col_coord,
                                              ordered[move_index].t_row_coord);
@@ -860,7 +1156,7 @@ int Board::ab_prune(int player, int depth, int score, int alpha, int beta)
         move(ordered[move_index], player);
         display(-player);
 
-        sprintf(string, "%c%d-%c%d", ordered[move_index].f_col_coord,
+        snprintf(string, 6,"%c%d-%c%d", ordered[move_index].f_col_coord,
                                      ordered[move_index].f_row_coord,
                                      ordered[move_index].t_col_coord,
                                      ordered[move_index].t_row_coord);
@@ -928,7 +1224,7 @@ int Board::id_negamax(int player, int depth, int score)
     if(depth == ndepth && time_result.tv_sec < TIME)
     {
             onmove = player;
-            sprintf(string, "%c%d-%c%d", ordered[move_index].f_col_coord,
+            snprintf(string, 6,"%c%d-%c%d", ordered[move_index].f_col_coord,
                                          ordered[move_index].f_row_coord,
                                          ordered[move_index].t_col_coord,
                                          ordered[move_index].t_row_coord);
@@ -979,7 +1275,7 @@ int Board::id_ab_prune(int player, int depth, int score, int alpha, int beta)
         if(depth == abdepth && time_result.tv_sec < TIME)
         {
 //            fprintf(stdout, "BEGINNING\n");
-            sprintf(string, "%c%d-%c%d", ordered[0].f_col_coord,
+              snprintf(string, 6,"%c%d-%c%d", ordered[0].f_col_coord,
                                          ordered[0].f_row_coord,
                                          ordered[0].t_col_coord,
                                          ordered[0].t_row_coord);
@@ -1010,7 +1306,7 @@ int Board::id_ab_prune(int player, int depth, int score, int alpha, int beta)
             {               
 //                fprintf(stdout, "Made itttttttttttt\n");
                 move_index = i;
-                sprintf(string, "%c%d-%c%d", ordered[move_index].f_col_coord,
+                snprintf(string, 6,"%c%d-%c%d", ordered[move_index].f_col_coord,
                                              ordered[move_index].f_row_coord,
                                              ordered[move_index].t_col_coord,
                                              ordered[move_index].t_row_coord);
@@ -1032,7 +1328,7 @@ int Board::id_ab_prune(int player, int depth, int score, int alpha, int beta)
     if(depth == abdepth && time_result.tv_sec < TIME)
     {
 //        fprintf(stdout, "EXIT\n");
-        sprintf(string, "%c%d-%c%d", ordered[move_index].f_col_coord,
+          snprintf(string, 6,"%c%d-%c%d", ordered[move_index].f_col_coord,
                                      ordered[move_index].f_row_coord,
                                      ordered[move_index].t_col_coord,
                                      ordered[move_index].t_row_coord);
@@ -1043,17 +1339,19 @@ int Board::id_ab_prune(int player, int depth, int score, int alpha, int beta)
 
 
 
-//Task:
-//Input:
-//Output:
+//Task:   As long as time permits I will increment the depth searched by 2 and 
+//          use the best move from the last full search when time runs out
+//Input:  Takes in the player on move
+//Output: returns the max value returned from alpha beta
 int Board::iterative_deep(int player)
 {
     //save move coords from each depth search and make move once out of for loop
     //within negamax check time, if over then return and use last move
-    //search for 7 seconds
+    //search for 8 seconds
     int value = 0; 
-    ndepth = 1;
-    abdepth = 1;
+    ndepth = 2;
+    abdepth = 2;
+    
     gettimeofday(&time_start, NULL);
     
 //    value = id_negamax(player, ndepth, 0);
@@ -1061,9 +1359,14 @@ int Board::iterative_deep(int player)
     if(onmove != player)
         onmove = player;
 
-    for(int i = 2; (i + move_num) < 42; i+=2)
+    //since depth of 2 counts as 1 move for both sides i start there and then
+    //increment by two each time. I divide i by 2 to represent a single move
+    //that will be added to move num. To search move 40 at depth two i will get
+    //41 and thus i check for if value is less than 42
+
+    for(int i = 4; ((i/2) + move_num) < 42; i+=2)
     {
-        ndepth = i;
+        //ndepth = i;
         abdepth = i;
         move_index = 0;
 //        value = id_negamax(player, ndepth, 0);
@@ -1076,9 +1379,13 @@ int Board::iterative_deep(int player)
         timersub(&time_end, &time_start, &time_result);
         
 //        fprintf(stdout, "%d seconds %d microseconds\n", (int)time_result.tv_sec, (int)time_result.tv_usec);
-        //if time passes 7 seconds then break loop
+        
+        //if time passes 8 seconds then break loop
         if(time_result.tv_sec >= TIME)
+        {
+            abdepth -= 2;
             break;
+        }
         if(value == -10000)
             break;
         if(value == 10000)
@@ -1087,8 +1394,8 @@ int Board::iterative_deep(int player)
 //            break;
     }
 
-    fprintf(stdout, "Depth: %d\n", ndepth);
-    //fprintf(stdout, "Depth: %d\n", abdepth);
+    //fprintf(stdout, "Depth: %d\n", ndepth);
+    fprintf(stdout, "Depth: %d\n", abdepth);
     move(string, player);
     display(-player);
     return value;

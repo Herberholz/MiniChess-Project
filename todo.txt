@@ -7,7 +7,3 @@ Notes: figure out how to evalute which move is best by searching recursively and
 
         When every move leads to a loss then first element will be chosen. Make 
         sure that it is not a king sacrifice to go for draw.
-
-Issue: When adding -O3 to Makefile to optimize code, it makes some lines of code
-        get repeated which can cause issues. Happened when i added extra variable
-        to Board class. I got a buffer overflow from calling sprintf twice.

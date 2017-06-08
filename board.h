@@ -12,13 +12,13 @@
 
 #define RANDOMIZE //flag that will set randomization
 #define UNDO_NEGA //flag that will undo negamax move
-#define UNDO_AB
+#define UNDO_AB   //flag that will undo ab/nega move
 
 const int ROW_DIM = 6; //Max row dimensions for board
 const int COL_DIM = 6; //Max col dimensions for board
 const int DEPTH = 6;   //Depth of how far Negamax will search
 const int ABDEPTH = 8; //Depth of how far Alpha Beta will search
-const int TIME = 7;    //Length of time ID searchs
+const int TIME = 8;    //Length of time ID searchs
 
 //Struct holds move info for pieces on board
 struct Move
@@ -35,6 +35,36 @@ struct Move
     int promotion;     //holds ascii value of piece before promotion
     int piece_capture; //holds piece capture
     int score;         //holds score of state if move is made
+};
+
+
+
+//Struct that holds piece ascii info
+struct Piece_rep
+{
+    Piece_rep();
+    int king;   //holds ascii value for king
+    int queen;  //holds ascii value for queen
+    int bishop; //holds ascii value for bishop
+    int knight; //holds ascii value for knight
+    int rook;   //holds ascii value for rook
+    int pawn;   //holds ascii value for pawn
+};
+
+
+
+//Struct that holds a flag indicating piece is present
+struct Piece_flag
+{
+    Piece_flag();
+    int w_queen;  //holds flag showing white queen is present
+    int b_queen;  //holds flag showing black queen is present
+    int w_rook;   //holds flag showing white rook is present
+    int b_rook;   //holds flag showing black rook is present
+    int w_bishop; //holds flag showing white bishop is present
+    int b_bishop; //holds flag showing black bishop is present
+    int w_knight; //holds flag showing white knight is present
+    int b_knight; //holds flag showing black knight is present
 };
 
 
@@ -56,6 +86,9 @@ class Board
         int move_list(int,int,Move[],int&);//scans to find moves for each piece
         int movegen(Move list[], int);     //generates all legal moves that can be made from given state
         int state_eval(Move &loc);         //values state of board for player
+        int eval_king(int,int,int);        //evaluates the king position on board
+        int eval_pawn(int,int);            //evaluates pawn positions
+        int avoid_sacrifice(int,Piece_flag);//avoids sacrificing pieces
         int negamax(int,int,int);          //searches tree representation of state space for best move
         int ab_prune(int,int,int,int,int); //uses alpha beta pruning to shrink state space search
         int id_negamax(int,int,int);       //negamax but with iterative deepening
@@ -63,11 +96,12 @@ class Board
         int iterative_deep(int);           //increases depth of search as long as time allows
 
     protected:
+        Piece_rep piece_val;          //holds ascii values for each piece
         char board[ROW_DIM][COL_DIM]; //holds minichess board 
         int onmove;                   //signifies which player is on move
         int move_num;                 //signifies what the current move is 
         int move_index;               //holds index of which move to make based off negamax/ab prune
-        char string[5];               //holds the string representation of move that is passed to server
+        char string[6];               //holds the string representation of move that is passed to server
         int ndepth;                   //Depth of how far Negamax will search
         int abdepth;                  //Depth of how far Alpha Beta will search
         struct timeval time_start, time_end, time_result; //holds time values
@@ -88,8 +122,8 @@ class Player: public Board
         int rand_vs_nega(int);      //random  vs negamax   --randvnega
         int abprune_vs_nega(int);   //abprune vs negamax   --abvnega
         void test();             //reads in a board state and displays move   --test
-        int test_ab(int);           //ab vs negamax/ab   --testab
-        void test_id();           //id_nega vs nega    --id
+        int test_ab(int);           //ab vs negamax/ab     --testab
+        void test_id();             //id_nega vs nega      --id
         int imcs_play(int, char**); //connects to imcs server to play a game
 
     protected:
