@@ -26,7 +26,7 @@ Examples shown below:
     ./a.out A W18000 username password
     ./a.out O B username password
 
-Testing feature inputs (explained further in Feature Set section):
+Testing feature inputs:
     ./a.out –random
     ./a.out –1vrand
     ./a.out –1vnega
@@ -35,8 +35,6 @@ Testing feature inputs (explained further in Feature Set section):
     ./a.out –test < test1.txt
     ./a.out –testab
     ./a.out –id < test1.txt
-
-
 
 Feature Set
 
