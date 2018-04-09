@@ -1,5 +1,4 @@
 # Cody Herberholz
-# cherber2@pdx.edu
 # MiniChess-Project
 
 
@@ -108,7 +107,7 @@ server play to help monitor my time as I played games.
 
 Future Plans
 
-I intend to implement the transposition table over the summer. This will allow 
+I intend to implement the transposition table next. This will allow 
 me to store and quickly access duplicate states to speed my search. I also 
 intend to find a way to speed up my program to improve my depth. I am currently 
 generating moves, where I then make that move temporarily in order to evaluate 
@@ -118,4 +117,3 @@ the entire board and evaluating both sides for every single possible legal
 move for as deep as time will let me go. This leads me to believe my bottleneck 
 may be within move generation so if I can improve this aspect of my program I 
 should get a significant boost in performance. 
-
